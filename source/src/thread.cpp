@@ -20,6 +20,7 @@ struct QiMacroWorker : public QiWorkerWithArgs<bool,Macro*,std::condition_variab
 		macro->script_interpreter.clearLocals();
 		macro->script_interpreter.setWorker(this);
 		macro->script_interpreter.setValue(QiScriptInterpreter::var_macro_name, macro->name.toStdString());
+		Qi::widget.varViewReload();
 
 		srand(clock());
 		try {
@@ -36,19 +37,28 @@ struct QiMacroWorker : public QiWorkerWithArgs<bool,Macro*,std::condition_variab
 							while (Qi::run && !m_stop && (macro->timer && !(QiTime::in(macro->timerStart, macro->timerEnd)))) Sleep(1);
 						}
 
+						// init script
 						macro->script_interpreter.interpretAll(macro->script.toStdString());
+						Qi::widget.varViewReload();
 
 						Qi::curBlock += macro->curBlock;
-						if (macro->count && macro->mode != Macro::sw)
+						// entry actions
+						interpreter.setActions(macro->acEnt);
+						if (interpreter.ActionInterpreter(macro->acEnt) != InterpreterResult::r_exit)
 						{
-							for (size_t i = 0; i < macro->count && !invalid(); i++) if (interpreter.ActionInterpreter(macro->acRun) != InterpreterResult::r_continue) break;
-						}
-						else if (!macro->count || macro->mode == Macro::sw)
-						{
-							while (!invalid()) if (interpreter.ActionInterpreter(macro->acRun) != InterpreterResult::r_continue) break;
+							interpreter.setActions(macro->acRun);
+							if (macro->count && macro->mode != Macro::sw)
+							{
+								for (size_t i = 0; i < macro->count && !invalid(); i++) if (interpreter.ActionInterpreter(macro->acRun) != InterpreterResult::r_continue) break;
+							}
+							else if (!macro->count || macro->mode == Macro::sw)
+							{
+								while (!invalid()) if (interpreter.ActionInterpreter(macro->acRun) != InterpreterResult::r_continue) break;
+							}
 						}
 						Qi::curBlock -= macro->curBlock;
 						
+						// end actions
 						if (!invalid()) macro->thread.end_start(macro);
 
 						timerOnce = true;
@@ -58,14 +68,20 @@ struct QiMacroWorker : public QiWorkerWithArgs<bool,Macro*,std::condition_variab
 				{
 					Qi::curBlock += macro->curBlock;
 					macro->script_interpreter.interpretAll(macro->script.toStdString());
-					interpreter.ActionInterpreter(macro->acRun);
+					Qi::widget.varViewReload();
+					interpreter.setActions(Qi::debug == 1 ? macro->acRun : macro->acEnt);
+					interpreter.ActionInterpreter(Qi::debug == 1 ? macro->acRun : macro->acEnt);
 					Qi::curBlock -= macro->curBlock;
 				}
 			}
 			else
 			{
 				Qi::curBlock += macro->curBlock;
-				if (Qi::run || Qi::debug) interpreter.ActionInterpreter(macro->acEnd);
+				if (Qi::run || Qi::debug)
+				{
+					interpreter.setActions(macro->acEnd);
+					interpreter.ActionInterpreter(macro->acEnd);
+				}
 				Qi::curBlock -= macro->curBlock;
 			}
 		}

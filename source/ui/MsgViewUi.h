@@ -17,6 +17,7 @@ class MsgViewUi : public QDialogFrameless
 	static constexpr size_t max_row = 1024;
 
 	Ui::MsgViewUiClass ui;
+	std::once_flag lang_once;
 	MsgViewInfos infos;
 	bool filter_msg = true;
 	bool filter_war = true;
@@ -25,6 +26,7 @@ class MsgViewUi : public QDialogFrameless
 public:
 	MsgViewUi();
 	void StyleGroup();
+	void LoadLanguage();
 
 private:
 	void append(const MsgViewInfo& info, bool update = false);

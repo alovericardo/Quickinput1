@@ -4,19 +4,56 @@ namespace QiFn
 {
 	void Key(char key, bool press)
 	{
-		Input::State(key, press, Qi::key_info);
+#ifdef Q_DRIVER
+		if (Qi::set.driver && Qi::driver.isInit())
+		{
+			press ? Qi::driver.key_down(key, Qi::key_info) : Qi::driver.key_up(key, Qi::key_info);
+		}
+		else
+#endif
+		{
+			Input::State(key, press, Qi::key_info);
+		}
 	}
 	void Move(int x, int y)
 	{
-		Input::Move(x, y, Qi::key_info);
+#ifdef Q_DRIVER
+		if (Qi::set.driver && Qi::driver.isInit())
+		{
+			Qi::driver.move(x, y, Qi::key_info);
+		}
+		else
+#endif
+		{
+			Input::Move(x, y, Qi::key_info);
+		}
 	}
 	void MoveTo(int x, int y)
 	{
-		Input::MoveTo(x, y, Qi::key_info);
+#ifdef Q_DRIVER
+		if (Qi::set.driver && Qi::driver.isInit())
+		{
+			Qi::driver.move_to(x, y, Qi::key_info);
+		}
+		else
+#endif
+		{
+			Input::MoveTo(x, y, Qi::key_info);
+		}
 	}
 	void MoveToA(int x, int y)
 	{
-		Input::MoveToA(x * 6.5535f, y * 6.5535f, Qi::key_info);
+#ifdef Q_DRIVER
+		if (Qi::set.driver && Qi::driver.isInit())
+		{
+			POINT pt = QiCvt::SP_AtR({ x, y });
+			Qi::driver.move_to(pt.x, pt.y, Qi::key_info);
+		}
+		else
+#endif
+		{
+			Input::MoveToA(x * 6.5535f, y * 6.5535f, Qi::key_info);
+		}
 	}
 
 	QString FoldText(QString str, int len, bool back)
@@ -99,61 +136,6 @@ namespace QiFn
 		}
 	}
 
-	void InitOcr(bool warning)
-	{
-#ifndef DEBUG
-#ifdef QIOCR_SHARED
-		std::wstring dll = L"OCR\\qiocr.dll";
-		if (!File::FileExist(dll))
-		{
-			if (warning) MsgBox::Warning(L"没有安装文字识别功能");
-			return;
-		}
-		Qi::ocr_ver = QiOcrVersion(dll);
-		if (Qi::ocr_ver < 3)
-		{
-			MsgBox::Warning(L"文字识别版本低于3，需要更新");
-			return;
-		}
-#endif
-#ifndef QIOCR_INTERNAL
-		std::wstring rec = L"ppocr.onnx";
-		std::wstring keys = L"ppocr.keys";
-		std::wstring det = L"OCR\\ppdet.onnx";
-		if (Qi::set.ocr_current.isEmpty())
-		{
-			rec = std::wstring(L"OCR\\") + rec;
-			keys = std::wstring(L"OCR\\") + keys;
-		}
-		else
-		{
-			std::wstring lang = Qi::set.ocr_current.toStdWString() + L"\\";
-			rec = std::wstring(L"OCR\\") + lang + rec;
-			keys = std::wstring(L"OCR\\") + lang + keys;
-		}
-
-#ifdef QIOCR_SHARED
-		Qi::ocr = QiOcrInit(dll, rec, keys, det, Qi::set.ocr_thread);
-#else
-		Qi::ocr = QiOcrInit(rec, keys, det, Qi::set.ocr_thread);
-#endif
-
-#else // QIOCR_INTERNAL
-		auto rec = ResourceTool::find(L"OCR", L"OCR_REC");
-		auto key = ResourceTool::find(L"OCR", L"OCR_KEY");
-		auto det = ResourceTool::find(L"OCR", L"OCR_DET");
-
-#ifdef QIOCR_SHARED
-		Qi::ocr = QiOcrInit(dll, rec.data(), rec.size(), key.data(), key.size(), det.data(), det.size(), Qi::set.ocr_thread);
-#else
-		Qi::ocr = QiOcrInit(rec.data(), rec.size(), key.data(), key.size(), det.data(), det.size(), Qi::set.ocr_thread);
-#endif
-
-#endif // QIOCR_INTERNAL
-		if (!Qi::ocr) MsgBox::Error(L"文字识别加载失败");
-#endif // DEBUG
-	}
-
 	void SmoothMove(const int sx, const int sy, const int dx, const int dy, const int speed, std::function<void(int x, int y, int stepx, int stepy)> CallBack)
 	{
 		int cx = dx - sx;
@@ -213,4 +195,110 @@ namespace QiFn
 		}
 		return macro;
 	}
+
+	void InitOcr(bool warning)
+	{
+#ifndef DEBUG
+#ifdef QIOCR_SHARED
+		std::wstring dll = L"OCR\\qiocr.dll";
+		if (!File::FileExist(dll))
+		{
+			if (warning) MsgBox::Warning(L"没有安装文字识别功能");
+			return;
+		}
+		Qi::ocr_ver = QiOcrVersion(dll);
+		if (Qi::ocr_ver < 3)
+		{
+			MsgBox::Warning(L"文字识别版本低于3，需要更新");
+			return;
+		}
+#endif
+#ifndef QIOCR_INTERNAL
+		std::wstring rec = L"ppocr.onnx";
+		std::wstring keys = L"ppocr.keys";
+		std::wstring det = L"OCR\\ppdet.onnx";
+		if (Qi::set.ocr_current.isEmpty())
+		{
+			rec = std::wstring(L"OCR\\") + rec;
+			keys = std::wstring(L"OCR\\") + keys;
+		}
+		else
+		{
+			std::wstring lang = Qi::set.ocr_current.toStdWString() + L"\\";
+			rec = std::wstring(L"OCR\\") + lang + rec;
+			keys = std::wstring(L"OCR\\") + lang + keys;
+		}
+
+#ifdef QIOCR_SHARED
+		Qi::ocr = QiOcrInit(dll, rec, keys, det, Qi::set.ocr_thread);
+#else
+		Qi::ocr = QiOcrInit(rec, keys, det, Qi::set.ocr_thread);
+#endif
+
+#else // QIOCR_INTERNAL
+		auto rec = ResourceTool::find(L"OCR", L"OCR_REC");
+		auto key = ResourceTool::find(L"OCR", L"OCR_KEY");
+		auto det = ResourceTool::find(L"OCR", L"OCR_DET");
+
+#ifdef QIOCR_SHARED
+		Qi::ocr = QiOcrInit(dll, rec.data(), rec.size(), key.data(), key.size(), det.data(), det.size(), Qi::set.ocr_thread);
+#else
+		Qi::ocr = QiOcrInit(rec.data(), rec.size(), key.data(), key.size(), det.data(), det.size(), Qi::set.ocr_thread);
+#endif
+
+#endif // QIOCR_INTERNAL
+		if (!Qi::ocr) MsgBox::Error(L"文字识别加载失败");
+#endif // DEBUG
+	}
+
+#ifdef Q_DRIVER
+	void InitDriver(bool warning)
+	{
+		const std::wstring subDir = L"DRIVER";
+		const std::wstring dll = subDir + L"\\QiDriver.dll";
+		if (!File::FileExist(dll))
+		{
+			if (warning) MsgBox::Warning(L"没有安装驱动");
+			return;
+		}
+
+		QiDriverInfo info{};
+		if (!QiDriverInfoQuery(dll, info))
+		{
+			MsgBox::Error(L"加载驱动失败");
+			return;
+		}
+		if (info.version < 1)
+		{
+			MsgBox::Error(L"驱动信息错误");
+			return;
+		}
+		
+		Qi::driver = QiDriverInit(dll);
+		if (!Qi::driver.valid())
+		{
+			MsgBox::Error(L"驱动无效");
+			return;
+		}
+
+		QiDriver::Status status = Qi::driver.init(subDir);
+		if (status == QiDriver::ok) {}
+		else if (status == QiDriver::not_install)
+		{
+			MessageBoxW(nullptr, L"初始化失败，可能未安装DD虚拟键盘鼠标\n\n点击安装", L"QiDriver", MB_ICONERROR | MB_TOPMOST);
+			Qi::driver.setup(subDir);
+			return;
+		}
+		else if (status == QiDriver::not_load)
+		{
+			MessageBoxW(nullptr, L"初始化失败，加载驱动接口失败", L"QiDriver", MB_ICONERROR | MB_TOPMOST);
+			return;
+		}
+		else
+		{
+			MessageBoxW(nullptr, L"初始化失败，加载驱动模块失败", L"QiDriver", MB_ICONERROR | MB_TOPMOST);
+			return;
+		}
+	}
+#endif
 }

@@ -185,7 +185,7 @@ namespace QiTools
 				path = path.substr(0, s);
 			else if (bs != std::wstring::npos)
 				path = path.substr(0, bs);
-			else path = L"";
+			else path = {};
 
 			if (mark) return AppendMark(path, L"\"");
 			return path;
@@ -235,7 +235,7 @@ namespace QiTools
 				path = path.substr(0, s);
 			else if (bs != std::wstring::npos)
 				path = path.substr(0, bs);
-			else path = L"";
+			else path = {};
 
 			if (mark) return AppendMark(path, L"\"");
 			return path;
@@ -246,7 +246,7 @@ namespace QiTools
 		static std::wstring GetExtension(std::wstring path, bool mark = false)
 		{
 			path = GetFile(path, false);
-			if (!path.size()) return L"";
+			if (!path.size()) return {};
 
 			size_t p = path.find_last_of(L'.');
 			if (p != std::wstring::npos) path = path.substr(p);
@@ -258,7 +258,7 @@ namespace QiTools
 		static std::wstring RemoveExtension(std::wstring path, bool mark = false)
 		{
 			path = RemoveMark(path, false);
-			if (!path.size()) return L"";
+			if (!path.size()) return {};
 
 			size_t s = path.find_last_of(L'/');
 			size_t bs = path.find_last_of(L'\\');
@@ -283,18 +283,18 @@ namespace QiTools
 				size_t p = 0;
 				if (path[0] == L'\"') p = path.find_first_of(L'\"', 1); // has left mark
 				else if (path[0] == L'\'') p = path.find_first_of(L'\'', 1); // has left mark
-				else return L"";
+				else return {};
 
-				if (p == std::wstring::npos) return L""; // no right mark
+				if (p == std::wstring::npos) return {}; // no right mark
 				if (p + 1 < path.length()) return RemoveSpace(path.substr(p + 1)); // has args
-				return L""; // no length
+				return {}; // no length
 			}
 			else
 			{
 				size_t p = path.find_first_of(L' ');
-				if (p == std::wstring::npos) return L""; // no args
+				if (p == std::wstring::npos) return {}; // no args
 				if (p + 1 < path.length()) return RemoveSpace(path.substr(p + 1)); // has args
-				return L""; // no length
+				return {}; // no length
 			}
 		}
 		/* Dir/File.exe args  to  Dir/File.exe */
@@ -415,7 +415,7 @@ namespace QiTools
 				if (!path.size()) return;
 
 				size_t p = _args.find(path);
-				if (p != std::wstring::npos) _args.replace(p, path.size(), L"");
+				if (p != std::wstring::npos) _args.replace(p, path.size(), {});
 				else return;
 			}
 			break;
@@ -427,8 +427,8 @@ namespace QiTools
 				size_t p = _dir.find(path);
 				if (p != std::wstring::npos)
 				{
-					if (p + path.size() < _dir.size() - 1 && _dir[p + path.size()] == L'/') _dir.replace(p, path.size() + 1, L"");
-					else _dir.replace(p, path.size(), L"");
+					if (p + path.size() < _dir.size() - 1 && _dir[p + path.size()] == L'/') _dir.replace(p, path.size() + 1, {});
+					else _dir.replace(p, path.size(), {});
 					_dir = RemoveDirMark(_dir);
 				}
 				else return;
@@ -445,8 +445,8 @@ namespace QiTools
 					size_t p = _dir.find(str);
 					if (p != std::wstring::npos)
 					{
-						if (p + str.size() < _dir.size() - 1 && _dir[p + str.size()] == L'/') _dir.replace(p, str.size() + 1, L"");
-						else _dir.replace(p, str.size(), L"");
+						if (p + str.size() < _dir.size() - 1 && _dir[p + str.size()] == L'/') _dir.replace(p, str.size() + 1, {});
+						else _dir.replace(p, str.size(), {});
 						_dir = RemoveDirMark(_dir);
 					}
 					else return;
@@ -454,7 +454,7 @@ namespace QiTools
 
 				if ((str = GetFile(path)).size())
 				{
-					if (str == _file) _file = L"";
+					if (str == _file) _file = {};
 				}
 			}
 			break;
@@ -470,8 +470,8 @@ namespace QiTools
 					size_t p = _dir.find(str);
 					if (p != std::wstring::npos)
 					{
-						if (p + str.size() < _dir.size() - 1 && _dir[p + str.size()] == L'/') _dir.replace(p, str.size() + 1, L"");
-						else _dir.replace(p, str.size(), L"");
+						if (p + str.size() < _dir.size() - 1 && _dir[p + str.size()] == L'/') _dir.replace(p, str.size() + 1, {});
+						else _dir.replace(p, str.size(), {});
 						_dir = RemoveDirMark(_dir);
 					}
 					else return;
@@ -479,13 +479,13 @@ namespace QiTools
 
 				if ((str = GetFile(path)).size())
 				{
-					if (str == _file) _file = L"";
+					if (str == _file) _file = {};
 				}
 
 				if ((str = GetArgs(path)).size())
 				{
 					size_t p = _args.find(str);
-					if (p != std::wstring::npos) _args.replace(p, str.size(), L"");
+					if (p != std::wstring::npos) _args.replace(p, str.size(), {});
 					else return;
 				}
 			}
@@ -496,23 +496,23 @@ namespace QiTools
 			size_t p = _dir.find(path._dir);
 			if (p != std::wstring::npos)
 			{
-				if (p + path._dir.size() < _dir.size() && _dir[p + path._dir.size() < _dir.size()] == L'/') _dir.replace(p, p + path._dir.size(), L""); // remove dir and /
-				else _dir.replace(p, p + path._dir.size() - 1, L""); // remove dir
+				if (p + path._dir.size() < _dir.size() && _dir[p + path._dir.size() < _dir.size()] == L'/') _dir.replace(p, p + path._dir.size(), {}); // remove dir and /
+				else _dir.replace(p, p + path._dir.size() - 1, {}); // remove dir
 			}
 
-			if (_file == path._file) _file = L"";
+			if (_file == path._file) _file = {};
 
 			p = _args.find(path._args);
 			if (p != std::wstring::npos)
 			{
-				if (p + path._args.size() < _args.size() && _args[p + path._args.size() < _args.size()] == L'/') _args.replace(p, p + path._args.size(), L""); // remove dir and /
-				_args.replace(p, p + path._args.size() - 1, L"");
+				if (p + path._args.size() < _args.size() && _args[p + path._args.size() < _args.size()] == L'/') _args.replace(p, p + path._args.size(), {}); // remove dir and /
+				_args.replace(p, p + path._args.size() - 1, {});
 			}
 		}
 
 		void back(unsigned int step = 1)
 		{
-			if (_file.size()) _file = L"", step--;
+			if (_file.size()) _file = {}, step--;
 
 			while (step)
 			{
@@ -520,7 +520,7 @@ namespace QiTools
 				if (s != std::wstring::npos) _dir = _dir.substr(0, s);
 				else
 				{
-					_dir = L"";
+					_dir = {};
 					break;
 				}
 				step--;

@@ -1,14 +1,15 @@
 ﻿#include <AboutUi.h>
 AboutUi::AboutUi(QWidget* parent) : QWidget(parent)
 {
+	Qi::widget.about = this;
 	ui.setupUi(this);
 	setWindowFlags(Qt::FramelessWindowHint);
+	Qi::version = ui.version_label->text();
 	if (!Qi::about.isEmpty()) ui.update_label->setText(Qi::about);
-	version_current = ui.version_label->text();
 	ui.url_label->installEventFilter(this);
 	ui.license_label->installEventFilter(this);
 #ifdef Q_UPDATE
-	update = std::make_unique<QiUpdate>(this, version_current);
+	update = std::make_unique<QiUpdate>(this, Qi::version);
 	update->getlatest();
 #endif
 #ifdef Q_URL_HIDE
@@ -18,7 +19,14 @@ AboutUi::AboutUi(QWidget* parent) : QWidget(parent)
 	ui.copyright_widget->setHidden(true);
 #endif
 }
-QString AboutUi::Version() const { return version_current; }
+
+void AboutUi::LoadLanguage()
+{
+	std::call_once(lang_once, [this] {
+		lang_save_t(ui.license_label);
+	});
+	lang_load_t(ui.license_label);
+}
 
 bool AboutUi::eventFilter(QObject* obj, QEvent* e)
 {
@@ -96,12 +104,19 @@ bool AboutUi::eventFilter(QObject* obj, QEvent* e)
 	return QWidget::eventFilter(obj, e);
 }
 #ifdef Q_UPDATE
-void AboutUi::customEvent(QEvent*)
+void AboutUi::customEvent(QEvent* e)
 {
-	version = update->version();
-	content = update->content();
-	ui.version_label->setText(ui.version_label->text() + "（有新版本）");
-	ui.version_label->setCursor(QCursor(Qt::CursorShape::WhatsThisCursor));
-	ui.version_label->installEventFilter(this);
+	if (e->type() == static_cast<int>(QiEvent::lang_reload))
+	{
+		LoadLanguage();
+	}
+	else
+	{
+		version = update->version();
+		content = update->content();
+		ui.version_label->setText(ui.version_label->text() + " (" + lang_trans("有新版本") + ")");
+		ui.version_label->setCursor(QCursor(Qt::CursorShape::WhatsThisCursor));
+		ui.version_label->installEventFilter(this);
+	}
 }
 #endif

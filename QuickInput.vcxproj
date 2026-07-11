@@ -19,15 +19,16 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <Import Project="$(ProjectDir)\config.props" />
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <PlatformToolset>v145</PlatformToolset>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
     <CharacterSet>Unicode</CharacterSet>
     <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <PlatformToolset>v145</PlatformToolset>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
     <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt_defaults.props')">
@@ -53,12 +54,12 @@
   </PropertyGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <QtModules>core;widgets</QtModules>
-    <QtInstall>Qt6.11.0_64_shared_md</QtInstall>
+    <QtInstall>Qt6.11.1_shared</QtInstall>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <QtModules>core;widgets</QtModules>
-    <QtInstall>Qt6.11.0_64_static_md</QtInstall>
+    <QtInstall>Qt6.11.1_static</QtInstall>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -110,6 +111,7 @@
     <ClCompile Include="source\src\input.cpp" />
     <ClCompile Include="source\src\interpreter.cpp" />
     <ClCompile Include="source\src\json.cpp" />
+    <ClCompile Include="source\src\lang.cpp" />
     <ClCompile Include="source\src\macro.cpp" />
     <ClCompile Include="source\src\scriptinterpreter.cpp" />
     <ClCompile Include="source\src\thread.cpp" />
@@ -152,7 +154,7 @@
       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
       <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).moc</QtMocFileName>
     </ClCompile>
-    <ClCompile Include="source\ui\MoreUi.cpp">
+    <ClCompile Include="source\ui\HelpUi.cpp">
       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
       <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>
       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
@@ -199,11 +201,44 @@
     <ClInclude Include="source\src\inc_project.h" />
     <ClInclude Include="source\src\interpreter.h" />
     <ClInclude Include="source\src\json.h" />
+    <ClInclude Include="source\src\lang.h" />
     <ClInclude Include="source\src\macro.h" />
     <ClInclude Include="source\src\mutex.h" />
     <ClInclude Include="source\src\range.h" />
     <ClInclude Include="source\src\scriptinterpreter.h" />
     <ClInclude Include="source\src\thread.h" />
+    <ClInclude Include="source\src\tools\aes.h" />
+    <ClInclude Include="source\src\tools\auddv.h" />
+    <ClInclude Include="source\src\tools\base.h" />
+    <ClInclude Include="source\src\tools\code.h" />
+    <ClInclude Include="source\src\tools\color.h" />
+    <ClInclude Include="source\src\tools\csvtool.h" />
+    <ClInclude Include="source\src\tools\file.h" />
+    <ClInclude Include="source\src\tools\format.h" />
+    <ClInclude Include="source\src\tools\graphicscapture.h" />
+    <ClInclude Include="source\src\tools\ihook.h" />
+    <ClInclude Include="source\src\tools\image.h" />
+    <ClInclude Include="source\src\tools\input.h" />
+    <ClInclude Include="source\src\tools\map2d.h" />
+    <ClInclude Include="source\src\tools\msgbox.h" />
+    <ClInclude Include="source\src\tools\ntp.h" />
+    <ClInclude Include="source\src\tools\path.h" />
+    <ClInclude Include="source\src\tools\process.h" />
+    <ClInclude Include="source\src\tools\resmonitor.h" />
+    <ClInclude Include="source\src\tools\restool.h" />
+    <ClInclude Include="source\src\tools\sound.h" />
+    <ClInclude Include="source\src\tools\string.h" />
+    <ClInclude Include="source\src\tools\system.h" />
+    <ClInclude Include="source\src\tools\task.h" />
+    <ClInclude Include="source\src\tools\texteditbox.h" />
+    <ClInclude Include="source\src\tools\thread.h" />
+    <ClInclude Include="source\src\tools\threadpool.h" />
+    <ClInclude Include="source\src\tools\threadqueue.h" />
+    <ClInclude Include="source\src\tools\time.h" />
+    <ClInclude Include="source\src\tools\tools.h" />
+    <ClInclude Include="source\src\tools\vector.h" />
+    <ClInclude Include="source\src\tools\window.h" />
+    <ClInclude Include="source\src\tools\xboxpad.h" />
     <ClInclude Include="source\src\trigger.h" />
     <ClInclude Include="source\src\type.h" />
     <ClInclude Include="source\src\ui.h" />
@@ -230,7 +265,7 @@
     <QtMoc Include="source\ui\TriggerUi.h" />
     <QtMoc Include="source\ui\SettingsUi.h" />
     <QtMoc Include="source\ui\RecordUi.h" />
-    <QtMoc Include="source\ui\MoreUi.h" />
+    <QtMoc Include="source\ui\HelpUi.h" />
     <QtMoc Include="source\ui\MainUi.h" />
     <QtMoc Include="source\ui\MacroUi.h" />
     <QtMoc Include="source\ui\FuncUi.h" />
@@ -243,7 +278,7 @@
     <QtUic Include="source\ui\FuncUi.ui" />
     <QtUic Include="source\ui\MacroUi.ui" />
     <QtUic Include="source\ui\MainUi.ui" />
-    <QtUic Include="source\ui\MoreUi.ui" />
+    <QtUic Include="source\ui\HelpUi.ui" />
     <QtUic Include="source\ui\MsgViewUi.ui" />
     <QtUic Include="source\ui\RecordUi.ui" />
     <QtUic Include="source\ui\SettingsUi.ui" />

@@ -2,6 +2,7 @@
 #include "QTextDialog.h"
 TriggerUi::TriggerUi(QWidget* parent) : QWidget(parent)
 {
+	Qi::widget.trigger = this;
 	ui.setupUi(this);
 	setWindowFlags(Qt::FramelessWindowHint);
 	Init();
@@ -281,31 +282,67 @@ void TriggerUi::Event()
 }
 void TriggerUi::StyleGroup()
 {
-	ui.block_check->setProperty("group", "check");
-	ui.block_cur_check->setProperty("group", "check");
+	style_set_group(ui.block_check, "check");
+	style_set_group(ui.block_cur_check, "check");
+	style_set_group(ui.var_button, "get_button");
+	style_set_group(ui.var_edit, "line_edit");
 	ui.mode_combo->setView(new QListView());
-	ui.mode_combo->setProperty("group", "combo");
-	ui.mode_combo->view()->setProperty("group", "combo_body");
-	ui.var_button->setProperty("group", "get_button");
-	ui.var_edit->setProperty("group", "line_edit");
-	ui.count_edit->setProperty("group", "line_edit");
-	ui.speed_edit->setProperty("group", "line_edit");
-	ui.match_check->setProperty("group", "check");
-	ui.match_button->setProperty("group", "get_button");
-	ui.match_name_edit->setProperty("group", "line_edit");
-	ui.match_class_edit->setProperty("group", "line_edit");
-	ui.match_proc_edit->setProperty("group", "line_edit");
-	ui.timer_start_edit->setProperty("group", "line_edit");
-	ui.timer_end_edit->setProperty("group", "line_edit");
-	ui.moveScale_x_edit->setProperty("group", "line_edit");
-	ui.moveScale_y_edit->setProperty("group", "line_edit");
-	ui.posScale_x_edit->setProperty("group", "line_edit");
-	ui.posScale_y_edit->setProperty("group", "line_edit");
-	ui.key_keyedit->setProperty("group", "line_edit");
-	ui.timer_check->setProperty("group", "check");
-	ui.timer_start_button->setProperty("group", "get_button");
-	ui.timer_end_button->setProperty("group", "get_button");
+	style_set_group(ui.mode_combo, "combo");
+	style_set_group(ui.mode_combo->view(), "combo_body");
+	style_set_group(ui.count_edit, "line_edit");
+	style_set_group(ui.speed_edit, "line_edit");
+	style_set_group(ui.match_check, "check");
+	style_set_group(ui.match_button, "get_button");
+	style_set_group(ui.match_name_edit, "line_edit");
+	style_set_group(ui.match_class_edit, "line_edit");
+	style_set_group(ui.match_proc_edit, "line_edit");
+	style_set_group(ui.timer_start_edit, "line_edit");
+	style_set_group(ui.timer_end_edit, "line_edit");
+	style_set_group(ui.moveScale_x_edit, "line_edit");
+	style_set_group(ui.moveScale_y_edit, "line_edit");
+	style_set_group(ui.posScale_x_edit, "line_edit");
+	style_set_group(ui.posScale_y_edit, "line_edit");
+	style_set_group(ui.key_keyedit, "line_edit");
+	style_set_group(ui.timer_check, "check");
+	style_set_group(ui.timer_start_button, "get_button");
+	style_set_group(ui.timer_end_button, "get_button");
 	ui.scrollArea->setStyleSheet("QScrollArea,QScrollBar,QScrollBar::sub-line,QScrollBar::add-line{background-color:rgba(0,0,0,0);border:none}QScrollBar::handle{background-color:rgba(128,128,128,0.3);border:none}");
+}
+void TriggerUi::LoadLanguage()
+{
+	std::call_once(lang_once, [this] {
+		lang_save_t(ui.block_check);
+		lang_save_t(ui.block_cur_check);
+		lang_save_t(ui.var_label);
+		lang_save_t(ui.mode_label);
+		lang_save_cmb(ui.mode_combo);
+		lang_save_t(ui.key_label);
+		lang_save_t(ui.count_label);
+		lang_save_t(ui.speed_label);
+		lang_save_t(ui.match_check);
+		lang_save_pht(ui.match_name_edit);
+		lang_save_pht(ui.match_class_edit);
+		lang_save_pht(ui.match_proc_edit);
+		lang_save_t(ui.timer_check);
+		lang_save_t(ui.moveScale_label);
+		lang_save_t(ui.posScale_label);
+	});
+	lang_load_t(ui.block_check);
+	lang_load_t(ui.block_cur_check);
+	lang_load_t(ui.var_label);
+	lang_load_t(ui.mode_label);
+	lang_load_cmb(ui.mode_combo);
+	lang_load_t(ui.key_label);
+	lang_load_t(ui.count_label);
+	lang_load_t(ui.speed_label);
+	lang_load_t(ui.match_check);
+	lang_load_pht(ui.match_name_edit);
+	lang_load_pht(ui.match_class_edit);
+	lang_load_pht(ui.match_proc_edit);
+	lang_load_t(ui.timer_check);
+	lang_load_t(ui.moveScale_label);
+	lang_load_t(ui.posScale_label);
+	TableUpdate();
 }
 
 bool TriggerUi::GroupCurrented() { return currentGroup; }
@@ -331,10 +368,10 @@ void TriggerUi::TableState(int macroGroup)
 	bool state_on = true; for (auto& i : mg->macros) { if (!i.state) { state_on = false; break; } }
 	bool state_off = true; for (auto& i : mg->macros) { if (i.state) { state_off = false; break; } }
 	if (!table) return;
-	if (state_on && state_off) table->horizontalHeaderItem(tableColumn_state)->setText(QString("全部") + QiUi::Symbol::Off);
-	else if (state_on) table->horizontalHeaderItem(tableColumn_state)->setText(QString("全部") + QiUi::Symbol::On);
-	else if (state_off) table->horizontalHeaderItem(tableColumn_state)->setText(QString("全部") + QiUi::Symbol::Off);
-	else table->horizontalHeaderItem(tableColumn_state)->setText(QString("全部") + QiUi::Symbol::Any);
+	if (state_on && state_off) table->horizontalHeaderItem(tableColumn_state)->setText(lang_trans("全部") + QiUi::Symbol::Off);
+	else if (state_on) table->horizontalHeaderItem(tableColumn_state)->setText(lang_trans("全部") + QiUi::Symbol::On);
+	else if (state_off) table->horizontalHeaderItem(tableColumn_state)->setText(lang_trans("全部") + QiUi::Symbol::Off);
+	else table->horizontalHeaderItem(tableColumn_state)->setText(lang_trans("全部") + QiUi::Symbol::Any);
 }
 void TriggerUi::SetTableItem(QTableWidget* table, int index, const Macro& macro)
 {
@@ -342,37 +379,38 @@ void TriggerUi::SetTableItem(QTableWidget* table, int index, const Macro& macro)
 	table->setItem(index, 0, new QTableWidgetItem(macro.name));
 	table->item(index, 0)->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 	// key
-	QString qs = "----";
+	QString qs;
 	if (macro.key1 && macro.key2) qs = QKeyEdit::keyName(macro.key1) + " + " + QKeyEdit::keyName(macro.key2);
 	else if (macro.key1) qs = QKeyEdit::keyName(macro.key1);
 	else if (macro.key2) qs = QKeyEdit::keyName(macro.key2);
+	else qs = "----";
 	table->setItem(index, 1, new QTableWidgetItem(qs));
 	table->item(index, 1)->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 	// mode and count
-	qs = "";
+	qs.clear();
 	switch (macro.mode)
 	{
 	case Macro::sw:
-		qs = "切换";
+		qs = lang_trans("切换");
 		break;
 	case Macro::down:
-		qs = "按下(";
+		qs = lang_trans("按下") + "(";
 		if (macro.count) qs += QString::number(macro.count);
-		else qs += "无限";
+		else qs += lang_trans("无限");
 		qs += ")";
 		break;
 	case Macro::up:
-		qs = "松开(";
+		qs = lang_trans("松开") + "(";
 		if (macro.count) qs += QString::number(macro.count);
-		else qs += "无限";
+		else qs += lang_trans("无限");
 		qs += ")";
 		break;
 	}
 	table->setItem(index, 2, new QTableWidgetItem(qs));
 	table->item(index, 2)->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 	// state
-	if (macro.state) qs = QiUi::Text::trOn;
-	else qs = QiUi::Text::trOff;
+	if (macro.state) qs = QiUi::Text::trOn();
+	else qs = QiUi::Text::trOff();
 	table->setItem(index, 3, new QTableWidgetItem(qs));
 	table->item(index, 3)->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 }
@@ -393,9 +431,9 @@ void TriggerUi::TableUpdate()
 		table->setEditTriggers(QAbstractItemView::EditTrigger::NoEditTriggers);
 		table->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeMode::Fixed);
 		table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeMode::Stretch);
-		table->setColumnWidth(1, 120);
-		table->setColumnWidth(2, 80);
-		table->setColumnWidth(3, 60);
+		table->setColumnWidth(tableColumn_key, 120);
+		table->setColumnWidth(tableColumn_mode, 80);
+		table->setColumnWidth(tableColumn_state, 80);
 		table->setSelectionBehavior(QAbstractItemView::SelectRows);
 		table->setSelectionMode(QAbstractItemView::SingleSelection);
 		for (size_t mPos = 0; mPos < mg.macros.size(); mPos++)
@@ -404,10 +442,10 @@ void TriggerUi::TableUpdate()
 			SetTableItem(table, mPos, m);
 			if (m.state) m.state = true;
 		}
-		table->setHorizontalHeaderItem(tableColumn_name, new QTableWidgetItem(mg.name));
-		table->setHorizontalHeaderItem(tableColumn_key, new QTableWidgetItem(""));
-		table->setHorizontalHeaderItem(tableColumn_mode, new QTableWidgetItem(""));
-		table->setHorizontalHeaderItem(tableColumn_state, new QTableWidgetItem("全部" + QiUi::Symbol::Any));
+		table->setHorizontalHeaderItem(tableColumn_name, new QTableWidgetItem(mg.base ? lang_trans("默认分组") : mg.name));
+		table->setHorizontalHeaderItem(tableColumn_key, new QTableWidgetItem(QString()));
+		table->setHorizontalHeaderItem(tableColumn_mode, new QTableWidgetItem(QString()));
+		table->setHorizontalHeaderItem(tableColumn_state, new QTableWidgetItem(lang_trans("全部") + QiUi::Symbol::Any));
 		TableState(mgPos);
 		ui.macroGroup_table->setFold(table, Qi::group.fold[mg.name]);
 	}
@@ -450,8 +488,12 @@ void TriggerUi::showEvent(QShowEvent*)
 }
 void TriggerUi::customEvent(QEvent* e)
 {
+	if (e->type() == static_cast<int>(QiEvent::lang_reload))
+	{
+		LoadLanguage();
+	}
 #ifdef Q_KEYEDIT_PAD_ENABLED
-	if (e->type() == static_cast<int>(QiEvent::key_reset))
+	else if (e->type() == static_cast<int>(QiEvent::key_reset))
 	{
 		ui.key_keyedit->setPadEnabled(Qi::set.pad);
 	}

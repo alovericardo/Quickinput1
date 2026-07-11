@@ -6,7 +6,7 @@ class QiInterpreter
 	QiWorker& worker;
 	Macro& macro;
 	POINT& cursor;
-	Actions& actions;
+	Actions* actions;
 	const bool timer;
 	const time_t timerStart;
 	const time_t timerEnd;
@@ -25,6 +25,7 @@ class QiInterpreter
 public:
 	QiInterpreter(Macro& macro, bool isRunning, QiWorker& worker);
 	int rand(int max, int min = 0);
+	void setActions(Actions& actions);
 	void setValue(const std::string& var, const QiVar& val);
 	void setCount(int i);
 	void setIndex(int i);

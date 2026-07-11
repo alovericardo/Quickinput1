@@ -19,10 +19,18 @@ VarViewUi::VarViewUi()
 
 void VarViewUi::StyleGroup()
 {
-	setProperty("group", "frame");
-	ui.title_widget->setProperty("group", "title");
-	ui.content_widget->setProperty("group", "client");
-	ui.title_close_button->setProperty("group", "title-close_button");
+	setProperty(Prop::style_group, "frame");
+	style_set_group(ui.title_widget, "title");
+	style_set_group(ui.content_widget, "client");
+	style_set_group(ui.title_close_button, "title-close_button");
+}
+void VarViewUi::LoadLanguage()
+{
+	std::call_once(lang_once, [this] {
+		lang_save_t(ui.title_label);
+		});
+	lang_load_t(ui.title_label);
+	if (!isHidden()) TableUpdate();
 }
 
 void VarViewUi::TableUpdate(QTableWidget* table, const QiVarMap varMap)
@@ -88,9 +96,9 @@ void VarViewUi::TableUpdate()
 			table->horizontalHeader()->setSectionResizeMode(tableColumn_value, QHeaderView::ResizeMode::Stretch);
 			table->setColumnWidth(tableColumn_name, 120);
 			table->setColumnWidth(tableColumn_type, 60);
-			table->setHorizontalHeaderItem(tableColumn_name, new QTableWidgetItem("全局"));
-			table->setHorizontalHeaderItem(tableColumn_type, new QTableWidgetItem("类型"));
-			table->setHorizontalHeaderItem(tableColumn_value, new QTableWidgetItem("值"));
+			table->setHorizontalHeaderItem(tableColumn_name, new QTableWidgetItem(lang_trans("全局")));
+			table->setHorizontalHeaderItem(tableColumn_type, new QTableWidgetItem(lang_trans("类型")));
+			table->setHorizontalHeaderItem(tableColumn_value, new QTableWidgetItem(lang_trans("值")));
 			table->setEditTriggers(QAbstractItemView::EditTrigger::NoEditTriggers);
 			table->setAutoScroll(false);
 		}
@@ -103,16 +111,17 @@ void VarViewUi::TableUpdate()
 		{
 			edit = false;
 			varMap = Qi::widget.editMacro.script_interpreter.local();
-			table->horizontalHeaderItem(tableColumn_name)->setText(Qi::widget.editMacro.name + "(编辑)");
+			table->horizontalHeaderItem(tableColumn_name)->setText(Qi::widget.editMacro.name + "(" + lang_trans("编辑") + ")");
 		}
 		else
 		{
 			macro = macros.at(i - 2);
-			table->horizontalHeaderItem(tableColumn_name)->setText(macro->name);
+			table->horizontalHeaderItem(tableColumn_name)->setText(macro->groupBase ? macro->name : macro->groupName + macro->name);
 			varMap = macro->script_interpreter.local();
 		}
 
 		TableUpdate(table, *varMap);
+		updating = true;
 		connect(table, &QTableWidget::cellDoubleClicked, this, [this, table](int row, int column) {
 			if (updating) return;
 			if (column == tableColumn_value) table->editItem(table->item(row, tableColumn_value));
@@ -165,5 +174,9 @@ void VarViewUi::customEvent(QEvent* e)
 				QTimer::singleShot(32, [this]() { reload = false; TableUpdate(); });
 			}
 		}
+	}
+	else if (e->type() == static_cast<int>(QiEvent::lang_reload))
+	{
+		LoadLanguage();
 	}
 }

@@ -12,9 +12,9 @@ UpdateUi::UpdateUi(const QString& version, const QString& content)
 
 void UpdateUi::StyleGroup()
 {
-	setProperty("group", "frame");
-	ui.title_widget->setProperty("group", "title");
-	ui.content_widget->setProperty("group", "client");
+	setProperty(Prop::style_group, "frame");
+	style_set_group(ui.title_widget, "title");
+	style_set_group(ui.content_widget, "client");
 }
 
 bool UpdateUi::event(QEvent* e)

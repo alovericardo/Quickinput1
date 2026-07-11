@@ -47,7 +47,6 @@ int main(int argc, char* argv[])
 	Qi::windowSelection = new QWindowSelection;
 
 	MainUi mainWindow;
-	Qi::version = mainWindow.Version();
 	application.exec();
 	return 0;
 }

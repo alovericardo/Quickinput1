@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MoreUiClass</class>
- <widget class="QDialog" name="MoreUiClass">
+ <class>HelpUiClass</class>
+ <widget class="QDialog" name="HelpUiClass">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -316,8 +316,8 @@ Quickinput的使用流程：
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>778</width>
-           <height>438</height>
+           <width>500</width>
+           <height>100</height>
           </rect>
          </property>
          <attribute name="label">
@@ -370,7 +370,7 @@ Quickinput的使用流程：
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>764</width>
+           <width>475</width>
            <height>500</height>
           </rect>
          </property>
@@ -449,8 +449,8 @@ Quickinput的使用流程：
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>778</width>
-           <height>438</height>
+           <width>450</width>
+           <height>340</height>
           </rect>
          </property>
          <attribute name="label">
@@ -518,8 +518,8 @@ Quickinput的使用流程：
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>778</width>
-           <height>438</height>
+           <width>292</width>
+           <height>324</height>
           </rect>
          </property>
          <attribute name="label">

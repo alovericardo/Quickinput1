@@ -8,6 +8,7 @@ class MainUi : public QMainWindowFrameless
 	Q_OBJECT;
 	using This = MainUi;
 	Ui::MainUiClass ui;
+	std::once_flag lang_once;
 
 	QSystemTrayIcon* tray = nullptr;
 	QMenu* menu = nullptr;
@@ -22,15 +23,17 @@ class MainUi : public QMainWindowFrameless
 
 public:
 	MainUi(int tab = 0);
-	QString Version() const;
 
 private:
 	void Init();
 	void Event();
 	void StyleGroup();
+	void LoadLanguage();
 
 	bool event(QEvent*);
 	bool eventFilter(QObject*, QEvent*);
 	void showEvent(QShowEvent*);
 	void resizeEvent(QResizeEvent*);
+	void customEvent(QEvent*);
+	void closeEvent(QCloseEvent*);
 };

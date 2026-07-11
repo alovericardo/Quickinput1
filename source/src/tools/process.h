@@ -65,7 +65,7 @@ namespace QiTools
 			}
 			return fullPath;
 		}
-		static size_t find(const std::wstring& exe) {
+		static size_t find(const std::wstring& exe, std::vector<DWORD>* pid) {
 			std::wstring exePath = String::toUpper(exe);
 			size_t pos = 0; while ((pos = exePath.find('/', pos)) != std::string::npos) { exePath.replace(pos, 1, L"\\"); pos += 1; }
 
@@ -80,8 +80,22 @@ namespace QiTools
 					std::wstring name = String::toUpper(pe.szExeFile);
 					if (exePath.find(name) != std::wstring::npos)
 					{
-						if (exePath.find('\\') == std::wstring::npos) count += exePath == name;
-						else count += exePath == String::toUpper(path(pe.th32ProcessID));
+						if (exePath.find('\\') == std::wstring::npos)
+						{
+							if (exePath == name)
+							{
+								count++;
+								if (pid) pid->push_back(pe.th32ProcessID);
+							}
+						}
+						else
+						{
+							if (exePath == String::toUpper(path(pe.th32ProcessID)))
+							{
+								count++;
+								if (pid) pid->push_back(pe.th32ProcessID);
+							}
+						}
 					}
 				} while (Process32NextW(hSnapshot, &pe));
 			}

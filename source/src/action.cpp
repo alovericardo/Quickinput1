@@ -1,5 +1,4 @@
 #include "action.h"
-#include "typepack/typepack.cpp"
 
 bool find_index(const Actions& actions, QiIndex& index, QiType type, int id)
 {

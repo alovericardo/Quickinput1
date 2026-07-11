@@ -108,7 +108,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-149</y>
+        <y>-250</y>
         <width>134</width>
         <height>806</height>
        </rect>
@@ -218,7 +218,7 @@
             <enum>Qt::LayoutDirection::RightToLeft</enum>
            </property>
            <property name="text">
-            <string>屏蔽鼠标　</string>
+            <string>屏蔽鼠标</string>
            </property>
           </widget>
          </item>
@@ -670,7 +670,7 @@
             <enum>Qt::FocusPolicy::ClickFocus</enum>
            </property>
            <property name="placeholderText">
-            <string>标题 *匹配多个文字</string>
+            <string>标题 *匹配多个</string>
            </property>
           </widget>
          </item>
@@ -692,7 +692,7 @@
             <enum>Qt::FocusPolicy::ClickFocus</enum>
            </property>
            <property name="placeholderText">
-            <string>类名 ?匹配单个文字</string>
+            <string>类名 ?匹配单个</string>
            </property>
           </widget>
          </item>

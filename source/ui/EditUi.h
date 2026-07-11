@@ -83,9 +83,9 @@ class EditUi : public QDialogFrameless
 			QAction* replace;
 			PasteMenu(QWidget* parent = nullptr) : QMenu(parent)
 			{
-				front = addAction("每项前");
-				back = addAction("每项后");
-				replace = addAction("覆盖所选");
+				front = addAction(lang_trans("每项前"));
+				back = addAction(lang_trans("每项后"));
+				replace = addAction(lang_trans("覆盖所选"));
 			}
 		};
 		class SelectMenu : public QMenu
@@ -97,10 +97,10 @@ class EditUi : public QDialogFrameless
 			QAction* identical_full;
 			SelectMenu(QWidget* parent = nullptr) : QMenu(parent)
 			{
-				all = addAction("全选");
-				similar = addAction("相似-同类型");
-				identical_param = addAction("相同-仅参数");
-				identical_full = addAction("相同-包括内容");
+				all = addAction(lang_trans("全选"));
+				similar = addAction(lang_trans("相似-同类型"));
+				identical_param = addAction(lang_trans("相同-仅参数"));
+				identical_full = addAction(lang_trans("相同-包括内容"));
 			}
 		};
 		public:
@@ -116,18 +116,18 @@ class EditUi : public QDialogFrameless
 		SelectMenu* select;
 		ListMenu(QWidget* parent = nullptr) : QMenu(parent)
 		{
-			del = addAction("删除");
-			cut = addAction("剪切");
-			copy = addAction("复制");
-			paste = addAction("粘贴");
-			redo = addAction("还原");
-			undo = addAction("撤销");
-			edit = addAction("编辑");
-			edit2 = addAction("编辑2");
+			del = addAction(lang_trans("删除"));
+			cut = addAction(lang_trans("剪切"));
+			copy = addAction(lang_trans("复制"));
+			paste = addAction(lang_trans("粘贴"));
+			redo = addAction(lang_trans("还原"));
+			undo = addAction(lang_trans("撤销"));
+			edit = addAction(lang_trans("编辑"));
+			edit2 = addAction(lang_trans("编辑2"));
 			adv_paste = new PasteMenu(this);
 			select = new SelectMenu(this);
-			addMenu(adv_paste)->setText("高级粘贴");
-			addMenu(select)->setText("选择");
+			addMenu(adv_paste)->setText(lang_trans("高级粘贴"));
+			addMenu(select)->setText(lang_trans("选择"));
 		}
 	};
 	TitleMenu* titleMenu;
@@ -230,6 +230,7 @@ private:
 	void Event_Table_Selection();
 
 	void StyleGroup();
+	void LoadLanguage();
 
 
 	void Disable(bool disable);

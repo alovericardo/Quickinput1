@@ -5,8 +5,8 @@ RecordUi::RecordUi(WndInfo* wndInfo) : wndInfo(wndInfo)
 	setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint);
 	if ("init")
 	{
-		ui.start_button->setText(QiUi::Text::rcStart);
-		ui.close_button->setText(QiUi::Text::rcClose);
+		ui.start_button->setText(QiUi::Text::rcStart());
+		ui.close_button->setText(QiUi::Text::rcClose());
 		if ("clear shortcut")
 		{
 			ui.start_button->installEventFilter(this);
@@ -20,10 +20,10 @@ RecordUi::RecordUi(WndInfo* wndInfo) : wndInfo(wndInfo)
 
 void RecordUi::StyleGroup()
 {
-	setProperty("group", "frame");
-	ui.content_widget->setProperty("group", "client");
-	ui.start_button->setProperty("group", "record-button");
-	ui.close_button->setProperty("group", "record-button");
+	setProperty(Prop::style_group, "frame");
+	style_set_group(ui.content_widget, "client");
+	style_set_group(ui.start_button, "record-button");
+	style_set_group(ui.close_button, "record-button");
 }
 
 Macro RecordUi::Start()
@@ -33,9 +33,10 @@ Macro RecordUi::Start()
 	QiTr::QiHook(true);
 	if (Qi::set.recKey)
 	{
-		QString text("按下");
+		QString text = lang_trans("按下") + " ";
 		text += QKeyEdit::keyName(Qi::set.recKey);
-		text += L"开始录制";
+		text += " ";
+		text += lang_trans("开始录制");
 		Qi::popText->Show(text, QColor(0x20, 0xFF, 0x20));
 	}
 	macro.mode = Macro::down;
@@ -45,7 +46,7 @@ Macro RecordUi::Start()
 		Qi::recordWindow = wndInfo->wnd;
 		macro.wndInfo = *wndInfo;
 		macro.wndState = true;
-		macro.name = "窗口录制";
+		macro.name = lang_trans("窗口录制");
 		POINT wpt = Window::pos(Qi::recordWindow);
 		move(wpt.x, wpt.y);
 		WndLock::Lock(Qi::recordWindow);
@@ -54,7 +55,7 @@ Macro RecordUi::Start()
 	}
 	else
 	{
-		macro.name = "录制";
+		macro.name = lang_trans("录制");
 		exec();
 	}
 	QiTr::QiHook(false);
@@ -67,12 +68,13 @@ void RecordUi::RecStart()
 {
 	if (Qi::set.recKey)
 	{
-		QString text("按下");
+		QString text = lang_trans("按下") + " ";
 		text += QKeyEdit::keyName(Qi::set.recKey);
-		text += "停止录制";
+		text += " ";
+		text += lang_trans("停止录制");
 		Qi::popText->Show(text);
 	}
-	ui.start_button->setText(QiUi::Text::rcStop);
+	ui.start_button->setText(QiUi::Text::rcStop());
 	Qi::record.clear();
 	Qi::recordClock = 0;
 	Qi::recording = true;

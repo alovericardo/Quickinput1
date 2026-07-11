@@ -5,6 +5,7 @@
 #include <qevent.h>
 #include <qpainter.h>
 #include <qapplication.h>
+#include <src/inc_project.h>
 
 class QWindowSelection : public QDialog
 {
@@ -96,7 +97,7 @@ private:
 		painter.setFont(font);
 		painter.setPen(QColor(255, 255, 255));
 		painter.fillRect(0, 0, width(), height(), QColor(0, 128, 255, 64));
-		painter.drawText(0, 0, width(), height(), Qt::AlignCenter, "点击回车选择");
+		painter.drawText(0, 0, width(), height(), Qt::AlignCenter, lang_trans("点击回车选择"));
 	}
 
 private Q_SLOTS:

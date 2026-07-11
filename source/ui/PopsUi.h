@@ -17,6 +17,7 @@ private:
 	void Init();
 	void Event();
 	void StyleGroup();
+	void LoadLanguage();
 	
 	void SetColor(const QColor& color, QPushButton* button);
 	void SelectColor(QiUi::PopTextInfo& p);

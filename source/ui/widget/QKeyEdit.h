@@ -12,6 +12,9 @@
 #endif
 #define VK_WHEELUP 0x0A
 #define VK_WHEELDOWN 0x0B
+
+#include <src/lang.h>
+
 class QKeyEdit;
 using QKeyEditKey = short;
 using QKeyEditKeys = QList<QKeyEditKey>;
@@ -556,14 +559,14 @@ public:
 #endif
 		{
 			switch (keyCode) {
-			case VK_LBUTTON: return u8"左键";
-			case VK_RBUTTON: return u8"右键";
+			case VK_LBUTTON: return lang_trans(u8"左键");
+			case VK_RBUTTON: return lang_trans(u8"右键");
 			case VK_CANCEL: return u8"Cancel";
-			case VK_MBUTTON: return u8"中键";
-			case VK_XBUTTON1: return u8"侧键1";
-			case VK_XBUTTON2: return u8"侧键2";
-			case VK_WHEELUP: return u8"滚轮↑";
-			case VK_WHEELDOWN: return u8"滚轮↓";
+			case VK_MBUTTON: return lang_trans(u8"中键");
+			case VK_XBUTTON1: return lang_trans(u8"侧键1");
+			case VK_XBUTTON2: return lang_trans(u8"侧键2");
+			case VK_WHEELUP: return lang_trans(u8"滚轮↑");
+			case VK_WHEELDOWN: return lang_trans(u8"滚轮↓");
 			case VK_BACK: return u8"Back";
 			case VK_TAB: return u8"Tab";
 			case VK_CLEAR: return u8"Clear";
@@ -582,7 +585,7 @@ public:
 			case VK_NONCONVERT: return u8"NonConvert";
 			case VK_ACCEPT: return u8"Accept";
 			case VK_MODECHANGE: return u8"ModeChange";
-			case VK_SPACE: return u8"空格";
+			case VK_SPACE: return lang_trans(u8"空格");
 			case VK_PRIOR: return u8"PageUp";
 			case VK_NEXT: return u8"PageDown";
 			case VK_END: return u8"End";

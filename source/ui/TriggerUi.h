@@ -15,6 +15,7 @@ class TriggerUi : public QWidget
 	};
 
 	Ui::TriggerUiClass ui;
+	std::once_flag lang_once;
 	MacroGroups* groups = &Qi::macroGroups;
 	MacroGroup* currentGroup = nullptr;
 	Macro* currentMacro = nullptr;
@@ -28,6 +29,7 @@ private:
 	void Init();
 	void Event();
 	void StyleGroup();
+	void LoadLanguage();
 
 	bool GroupCurrented();
 	bool TableCurrented();

@@ -7,6 +7,7 @@ class FuncUi : public QWidget
 	Q_OBJECT;
 	using This = FuncUi;
 	Ui::FuncUiClass ui;
+	std::once_flag lang_once;
 	FuncData* func = &Qi::fun;
 
 public:
@@ -16,6 +17,7 @@ private:
 	void Init();
 	void Event();
 	void StyleGroup();
+	void LoadLanguage();
 
 
 	bool event(QEvent*);

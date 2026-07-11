@@ -26,67 +26,26 @@ namespace QiTools
 
 		static LRESULT __stdcall MouseHook(int code, WPARAM msg, LPARAM param)
 		{
-			if (code < 0 || !s_mouseState)
-				return CallNextHookEx(s_mouseHook, code, msg, param);
+			if (code < 0 || !s_mouseState) return CallNextHookEx(s_mouseHook, code, msg, param);
 
 			auto* ms = reinterpret_cast<MSLLHOOKSTRUCT*>(param);
 			bool block = false;
 
 			switch (msg)
 			{
-			case WM_MOUSEMOVE:
-				if (InputProc(0, false, ms->pt, &ms->dwExtraInfo)) return 1;
-				break;
-			case WM_LBUTTONDOWN:
-				if (InputProc(VK_LBUTTON, true, ms->pt, &ms->dwExtraInfo)) return 1;
-				break;
-			case WM_LBUTTONUP:
-				if (InputProc(VK_LBUTTON, false, ms->pt, &ms->dwExtraInfo)) return 1;
-				break;
-			case WM_RBUTTONDOWN:
-				if (InputProc(VK_RBUTTON, true, ms->pt, &ms->dwExtraInfo)) return 1;
-				break;
-			case WM_RBUTTONUP:
-				if (InputProc(VK_RBUTTON, false, ms->pt, &ms->dwExtraInfo)) return 1;
-				break;
-			case WM_MBUTTONDOWN:
-				if (InputProc(VK_MBUTTON, true, ms->pt, &ms->dwExtraInfo)) return 1;
-				break;
-			case WM_MBUTTONUP:
-				if (InputProc(VK_MBUTTON, false, ms->pt, &ms->dwExtraInfo)) return 1;
-				break;
-			case WM_XBUTTONDOWN:
-				if ((ms->mouseData >> 16) == XBUTTON1)
-				{
-					if (InputProc(VK_XBUTTON1, true, ms->pt, &ms->dwExtraInfo)) return 1;
-				}
-				else if ((ms->mouseData >> 16) == XBUTTON2)
-				{
-					if (InputProc(VK_XBUTTON2, true, ms->pt, &ms->dwExtraInfo)) return 1;
-				}
-				break;
-			case WM_XBUTTONUP:
-				if ((ms->mouseData >> 16) == XBUTTON1)
-				{
-					if (InputProc(VK_XBUTTON1, false, ms->pt, &ms->dwExtraInfo)) return 1;
-				}
-				else if ((ms->mouseData >> 16) == XBUTTON2)
-				{
-					if (InputProc(VK_XBUTTON2, false, ms->pt, &ms->dwExtraInfo)) return 1;
-				}
-				break;
-			case WM_MOUSEWHEEL:
-				if ((short)(ms->mouseData >> 16) >= (short)0x78)
-				{
-					if (InputProc(VK_WHEELUP, true, ms->pt, &ms->dwExtraInfo)) return 1;
-					if (InputProc(VK_WHEELUP, false, ms->pt, &ms->dwExtraInfo)) return 1;
-				}
-				else if ((short)(ms->mouseData >> 16) <= (short)(0xFF88))
-				{
-					if (InputProc(VK_WHEELDOWN, true, ms->pt, &ms->dwExtraInfo)) return 1;
-					if (InputProc(VK_WHEELDOWN, false, ms->pt, &ms->dwExtraInfo)) return 1;
-				}
-				break;
+			case WM_MOUSEMOVE: if (InputProc(0, false, ms->pt, &ms->dwExtraInfo)) return 1; break;
+			case WM_LBUTTONDOWN: if (InputProc(VK_LBUTTON, true, ms->pt, &ms->dwExtraInfo)) return 1; break;
+			case WM_LBUTTONUP: if (InputProc(VK_LBUTTON, false, ms->pt, &ms->dwExtraInfo)) return 1; break;
+			case WM_RBUTTONDOWN: if (InputProc(VK_RBUTTON, true, ms->pt, &ms->dwExtraInfo)) return 1; break;
+			case WM_RBUTTONUP: if (InputProc(VK_RBUTTON, false, ms->pt, &ms->dwExtraInfo)) return 1; break;
+			case WM_MBUTTONDOWN: if (InputProc(VK_MBUTTON, true, ms->pt, &ms->dwExtraInfo)) return 1; break;
+			case WM_MBUTTONUP: if (InputProc(VK_MBUTTON, false, ms->pt, &ms->dwExtraInfo)) return 1; break;
+			case WM_XBUTTONDOWN: if ((ms->mouseData >> 16) == XBUTTON1) { if (InputProc(VK_XBUTTON1, true, ms->pt, &ms->dwExtraInfo)) return 1; }
+							   else if ((ms->mouseData >> 16) == XBUTTON2) { if (InputProc(VK_XBUTTON2, true, ms->pt, &ms->dwExtraInfo)) return 1; } break;
+			case WM_XBUTTONUP: if ((ms->mouseData >> 16) == XBUTTON1) { if (InputProc(VK_XBUTTON1, false, ms->pt, &ms->dwExtraInfo)) return 1; }
+							 else if ((ms->mouseData >> 16) == XBUTTON2) { if (InputProc(VK_XBUTTON2, false, ms->pt, &ms->dwExtraInfo)) return 1; } break;
+			case WM_MOUSEWHEEL: if ((short)(ms->mouseData >> 16) >= (short)0x78) { if (InputProc(VK_WHEELUP, true, ms->pt, &ms->dwExtraInfo)) return 1; if (InputProc(VK_WHEELUP, false, ms->pt, &ms->dwExtraInfo)) return 1; }
+							  else if ((short)(ms->mouseData >> 16) <= (short)(0xFF88)) { if (InputProc(VK_WHEELDOWN, true, ms->pt, &ms->dwExtraInfo)) return 1; if (InputProc(VK_WHEELDOWN, false, ms->pt, &ms->dwExtraInfo)) return 1; } break;
 			}
 
 			return block ? 1 : CallNextHookEx(s_mouseHook, code, msg, param);
@@ -94,8 +53,7 @@ namespace QiTools
 
 		static LRESULT __stdcall KeybdHook(int code, WPARAM msg, LPARAM param)
 		{
-			if (code < 0 || !s_keybdState)
-				return CallNextHookEx(s_keybdHook, code, msg, param);
+			if (code < 0 || !s_keybdState) return CallNextHookEx(s_keybdHook, code, msg, param);
 
 			auto* kb = reinterpret_cast<KBDLLHOOKSTRUCT*>(param);
 			const bool isDown = (msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN);
@@ -159,8 +117,7 @@ namespace QiTools
 			MSG msg;
 			while (GetMessageW(&msg, nullptr, 0, 0))
 			{
-				if (msg.message == WM_QUIT)
-					break;
+				if (msg.message == WM_QUIT) break;
 
 				TranslateMessage(&msg);
 				DispatchMessageW(&msg);
@@ -207,11 +164,9 @@ namespace QiTools
 			if (!s_thread)
 			{
 				s_thread = CreateThread(nullptr, 0, HookThread, nullptr, 0, &s_threadId);
-				if (!s_thread)
-					return false;
+				if (!s_thread) return false;
 
-				while (!s_createFlag.load(std::memory_order_acquire))
-					Sleep(1);
+				while (!s_createFlag.load(std::memory_order_acquire)) Sleep(1);
 
 				if (!s_mouseHook || !s_keybdHook)
 				{
@@ -257,8 +212,7 @@ namespace QiTools
 		static void Wait()
 		{
 			std::lock_guard lock(s_mutex);
-			if (s_thread)
-				WaitForSingleObject(s_thread, INFINITE);
+			if (s_thread) WaitForSingleObject(s_thread, INFINITE);
 		}
 	};
 }

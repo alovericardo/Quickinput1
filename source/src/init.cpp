@@ -912,11 +912,16 @@ void Qi::init()
         Qi::screen = System::screenSize();
         Qi::display_update.start();
         QiJson::LoadJson();
+        
         Init_Sound();
+        
         Init_Style();
         if (Qi::set.theme >= Qi::ui.themes.size()) Qi::set.theme = 0;
 
         QiFn::InitOcr(false);
+#ifdef Q_DRIVER
+        if (Qi::set.driver) QiFn::InitDriver(false);
+#endif
 
         QiScriptInterpreter::init();
        });

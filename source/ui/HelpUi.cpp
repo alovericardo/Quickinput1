@@ -1,21 +1,21 @@
-﻿#include "MoreUi.h"
-MoreUi::MoreUi()
+﻿#include "HelpUi.h"
+HelpUi::HelpUi()
 {
 	ui.setupUi(this);
 	connect(ui.title_close_button, &QPushButton::clicked, this, [this] { hide(); });
 	StyleGroup();
 }
 
-void MoreUi::StyleGroup()
+void HelpUi::StyleGroup()
 {
-	setProperty("group", "frame");
-	ui.title_widget->setProperty("group", "title");
-	ui.content_widget->setProperty("group", "client");
-	ui.title_close_button->setProperty("group", "title-close_button");
-	ui.toolBox->setProperty("group", "ltab_widget");
+	setProperty(Prop::style_group, "frame");
+	style_set_group(ui.title_widget, "title");
+	style_set_group(ui.content_widget, "client");
+	style_set_group(ui.title_close_button, "title-close_button");
+	style_set_group(ui.toolBox, "ltab_widget");
 }
 
-bool MoreUi::event(QEvent* e)
+bool HelpUi::event(QEvent* e)
 {
 	if (e->type() == QEvent::WindowActivate)
 	{
@@ -39,7 +39,7 @@ bool MoreUi::event(QEvent* e)
 	}
 	return QDialogFrameless::event(e);
 }
-void MoreUi::showEvent(QShowEvent*)
+void HelpUi::showEvent(QShowEvent*)
 {
 	SetForegroundWindow((HWND)QWidget::winId());
 }

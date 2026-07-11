@@ -1140,7 +1140,14 @@ struct QiFunc_wnd_close : public QiFunc
 	{
 		auto wnd = reinterpret_cast<HWND>(args[0].toPointer());
 		if (!IsWindow(wnd)) return false;
-		return static_cast<bool>(CloseWindow(wnd));
+		static_cast<bool>(CloseWindow(wnd));
+		if (!IsWindow(wnd)) return true;
+		PostMessageW(wnd, WM_CLOSE, 0, 0);
+		if (!IsWindow(wnd)) return true;
+		PostMessageW(wnd, WM_DESTROY, 0, 0);
+		if (!IsWindow(wnd)) return true;
+		PostMessageW(wnd, WM_QUIT, 0, 0);
+		return true;
 	}
 };
 struct QiFunc_wnd_show : public QiFunc
@@ -1224,6 +1231,26 @@ struct QiFunc_wnd_size : public QiFunc
 		return static_cast<bool>(SetWindowPos(wnd, nullptr, 0, 0, args[1].toInteger(), args[2].toInteger(), SWP_NOMOVE));
 	}
 };
+/*
+ptr handle
+str x var name
+str y var name
+
+bool return
+*/
+struct QiFunc_wnd_size_get : public QiFunc
+{
+	QiFunc_wnd_size_get() : QiFunc(3) {}
+	QiVar exec(const std::vector<QiVar>& args, QiScriptInterpreter* inter) const override
+	{
+		auto wnd = reinterpret_cast<HWND>(args[0].toPointer());
+		if (!IsWindow(wnd)) return false;
+		auto size = Window::size(wnd);
+		inter->setValue(args[1].toString(), size.cx);
+		inter->setValue(args[2].toString(), size.cy);
+		return true;
+	}
+};
 struct QiFunc_wnd_exist : public QiFunc
 {
 	QiFunc_wnd_exist() : QiFunc(1) {}
@@ -1261,13 +1288,81 @@ struct QiFunc_wnd_text : public QiFunc
 		return Window::text(wnd).toStdString();
 	}
 };
+struct QiFunc_wnd_text_set : public QiFunc
+{
+	QiFunc_wnd_text_set() : QiFunc(2) {}
+	QiVar exec(const std::vector<QiVar>& args, QiScriptInterpreter*) const override
+	{
+		auto wnd = reinterpret_cast<HWND>(args[0].toPointer());
+		if (!IsWindow(wnd)) return false;
+		return SetWindowTextW(wnd, args[1].toWString().c_str()) != FALSE;
+	}
+};
+struct QiFunc_wnd_class : public QiFunc
+{
+	QiFunc_wnd_class() : QiFunc(1) {}
+	QiVar exec(const std::vector<QiVar>& args, QiScriptInterpreter*) const override
+	{
+		auto wnd = reinterpret_cast<HWND>(args[0].toPointer());
+		if (!IsWindow(wnd)) return false;
+		return Window::className(wnd).toStdString();
+	}
+};
 
+struct QiFunc_dir_exist : public QiFunc
+{
+	QiFunc_dir_exist() : QiFunc(1) {}
+	QiVar exec(const std::vector<QiVar>& args, QiScriptInterpreter*) const override
+	{
+		return File::FolderExist(String::toWString(args[0].toString()));
+	}
+};
 struct QiFunc_dir_create : public QiFunc
 {
 	QiFunc_dir_create() : QiFunc(1) {}
 	QiVar exec(const std::vector<QiVar>& args, QiScriptInterpreter*) const override
 	{
 		return static_cast<bool>(CreateDirectoryW(args[0].toWString().c_str(), NULL));
+	}
+};
+struct QiFunc_dir_copy : public QiFunc
+{
+	QiFunc_dir_copy() : QiFunc(2) {}
+	QiVar exec(const std::vector<QiVar>& args, QiScriptInterpreter*) const override
+	{
+		try
+		{
+			std::filesystem::copy(String::toWString(args[0].toString()).c_str(), String::toWString(args[1].toString()).c_str());
+			return true;
+		}
+		catch (...)
+		{
+			return false;
+		}
+	}
+};
+struct QiFunc_dir_move : public QiFunc
+{
+	QiFunc_dir_move() : QiFunc(2) {}
+	QiVar exec(const std::vector<QiVar>& args, QiScriptInterpreter*) const override
+	{
+		return static_cast<bool>(MoveFileW(String::toWString(args[0].toString()).c_str(), String::toWString(args[1].toString()).c_str()));
+	}
+};
+struct QiFunc_dir_rename : public QiFunc
+{
+	QiFunc_dir_rename() : QiFunc(2) {}
+	QiVar exec(const std::vector<QiVar>& args, QiScriptInterpreter*) const override
+	{
+		const auto src = String::toWString(args[0].toString());
+		const auto des = String::toWString(args[1].toString());
+		std::wstring des_path;
+		if ((src.find(L'\\') != std::wstring::npos || src.find(L'/') != std::wstring::npos) && (des.find(L'\\') == std::wstring::npos && des.find(L'/') == std::wstring::npos))
+		{
+			const auto dir = Path::RemoveFile(src);
+			des_path = Path::Append(dir, des);
+		}
+		return static_cast<bool>(MoveFileW(src.c_str(), (des_path.empty() ? des : des_path).c_str()));
 	}
 };
 struct QiFunc_dir_remove : public QiFunc
@@ -1285,39 +1380,53 @@ struct QiFunc_dir_remove : public QiFunc
 		}
 	}
 };
-struct QiFunc_dir_exist : public QiFunc
+struct QiFunc_dir_open : public QiFunc
 {
-	QiFunc_dir_exist() : QiFunc(1) {}
+	QiFunc_dir_open() : QiFunc(1) {}
 	QiVar exec(const std::vector<QiVar>& args, QiScriptInterpreter*) const override
 	{
-		return File::FolderExist(String::toWString(args[0].toString()));
+		return reinterpret_cast<size_t>(ShellExecuteW(nullptr, L"open", L"explorer.exe", args[0].toWString().c_str(), nullptr, SW_SHOW)) > 32;
 	}
 };
 
-struct QiFunc_file_read : public QiFunc
-{
-	QiFunc_file_read() : QiFunc(1) {}
-	QiVar exec(const std::vector<QiVar>& args, QiScriptInterpreter*) const override
-	{
-		QByteArray data;
-		if (File::LoadText(args[0].toString().c_str(), data)) return QString::fromUtf8(data).toStdString();
-		return {};
-	}
-};
-struct QiFunc_file_write : public QiFunc
-{
-	QiFunc_file_write() : QiFunc(2) {}
-	QiVar exec(const std::vector<QiVar>& args, QiScriptInterpreter*) const override
-	{
-		return File::SaveText(args[0].toString().c_str(), args[1].toString().c_str());
-	}
-};
 struct QiFunc_file_exist : public QiFunc
 {
 	QiFunc_file_exist() : QiFunc(1) {}
 	QiVar exec(const std::vector<QiVar>& args, QiScriptInterpreter*) const override
 	{
 		return File::FileExist(String::toWString(args[0].toString()));
+	}
+};
+struct QiFunc_file_copy : public QiFunc
+{
+	QiFunc_file_copy() : QiFunc(2) {}
+	QiVar exec(const std::vector<QiVar>& args, QiScriptInterpreter*) const override
+	{
+		return static_cast<bool>(CopyFileW(String::toWString(args[0].toString()).c_str(), String::toWString(args[1].toString()).c_str(), TRUE));
+	}
+};
+struct QiFunc_file_move : public QiFunc
+{
+	QiFunc_file_move() : QiFunc(2) {}
+	QiVar exec(const std::vector<QiVar>& args, QiScriptInterpreter*) const override
+	{
+		return static_cast<bool>(MoveFileW(String::toWString(args[0].toString()).c_str(), String::toWString(args[1].toString()).c_str()));
+	}
+};
+struct QiFunc_file_rename : public QiFunc
+{
+	QiFunc_file_rename() : QiFunc(2) {}
+	QiVar exec(const std::vector<QiVar>& args, QiScriptInterpreter*) const override
+	{
+		const auto src = String::toWString(args[0].toString());
+		const auto des = String::toWString(args[1].toString());
+		std::wstring des_path;
+		if ((src.find(L'\\') != std::wstring::npos || src.find(L'/') != std::wstring::npos) && (des.find(L'\\') == std::wstring::npos && des.find(L'/') == std::wstring::npos))
+		{
+			const auto dir = Path::RemoveFile(src);
+			des_path = Path::Append(dir, des);
+		}
+		return static_cast<bool>(MoveFileW(src.c_str(), (des_path.empty() ? des : des_path).c_str()));
 	}
 };
 struct QiFunc_file_remove : public QiFunc
@@ -1334,6 +1443,24 @@ struct QiFunc_file_open : public QiFunc
 	QiVar exec(const std::vector<QiVar>& args, QiScriptInterpreter*) const override
 	{
 		return Process::open(String::toWString(args[0].toString()));
+	}
+};
+struct QiFunc_file_read : public QiFunc
+{
+	QiFunc_file_read() : QiFunc(1) {}
+	QiVar exec(const std::vector<QiVar>& args, QiScriptInterpreter*) const override
+	{
+		QByteArray data;
+		if (File::LoadText(args[0].toString().c_str(), data)) return QString::fromUtf8(data).toStdString();
+		return {};
+	}
+};
+struct QiFunc_file_write : public QiFunc
+{
+	QiFunc_file_write() : QiFunc(2) {}
+	QiVar exec(const std::vector<QiVar>& args, QiScriptInterpreter*) const override
+	{
+		return File::SaveText(args[0].toString().c_str(), args[1].toString().c_str());
 	}
 };
 
@@ -1442,7 +1569,7 @@ struct QiFunc_proc_find : public QiFunc
 	QiFunc_proc_find() : QiFunc(1) {}
 	QiVar exec(const std::vector<QiVar>& args, QiScriptInterpreter*) const override
 	{
-		return Process::find(args[0].toWString());
+		return Process::find(args[0].toWString(), nullptr);
 	}
 };
 struct QiFunc_proc_close : public QiFunc
@@ -1452,6 +1579,17 @@ struct QiFunc_proc_close : public QiFunc
 	{
 		if (args.empty()) Qi::exit(0);
 		return Process::close(args[0].toWString());
+	}
+};
+struct QiFunc_proc_path : public QiFunc
+{
+	QiFunc_proc_path() : QiFunc(0, 1) {}
+	QiVar exec(const std::vector<QiVar>& args, QiScriptInterpreter*) const override
+	{
+		if (args.empty()) return Process::exePath();
+		std::vector<DWORD> pid;
+		if (Process::find(args[0].toWString(), &pid)) return Process::path(pid.front());
+		return {};
 	}
 };
 
@@ -1692,7 +1830,7 @@ struct QiFunc_cmd : public QiFunc
 	QiFunc_cmd() : QiFunc(1) {}
 	QiVar exec(const std::vector<QiVar>& args, QiScriptInterpreter*) const override
 	{
-		std::wstring output;
+		std::string output;
 		System::ExecuteCmd(String::toWString(args[0].toString()), output);
 		return output;
 	}
@@ -2130,20 +2268,30 @@ QiFuncMap::QiFuncMap()
 	insert({ "wnd_alpha", std::make_unique<QiFunc_wnd_opacity>() });
 	insert({ "wnd_pos", std::make_unique<QiFunc_wnd_pos>() });
 	insert({ "wnd_size", std::make_unique<QiFunc_wnd_size>() });
+	insert({ "wnd_size_get", std::make_unique<QiFunc_wnd_size_get>() });
 	insert({ "wnd_exist", std::make_unique<QiFunc_wnd_exist>() });
 	insert({ "wnd_current", std::make_unique<QiFunc_wnd_current>() });
 	insert({ "wnd_visible", std::make_unique<QiFunc_wnd_visible>() });
 	insert({ "wnd_text", std::make_unique<QiFunc_wnd_text>() });
+	insert({ "wnd_text_set", std::make_unique<QiFunc_wnd_text_set>() });
+	insert({ "wnd_class", std::make_unique<QiFunc_wnd_class>() });
 
+	insert({ "dir_exist", std::make_unique<QiFunc_dir_exist>() });
 	insert({ "dir_create", std::make_unique<QiFunc_dir_create>() });
+	insert({ "dir_copy", std::make_unique<QiFunc_dir_copy>() });
+	insert({ "dir_move", std::make_unique<QiFunc_dir_move>() });
+	insert({ "dir_rename", std::make_unique<QiFunc_dir_rename>() });
 	insert({ "dir_remove", std::make_unique<QiFunc_dir_remove>() });
-	insert({ "dir_exist", std::make_unique<QiFunc_dir_remove>() });
+	insert({ "dir_open", std::make_unique<QiFunc_dir_open>() });
 
-	insert({ "file_read", std::make_unique<QiFunc_file_read>() });
-	insert({ "file_write", std::make_unique<QiFunc_file_write>() });
 	insert({ "file_exist", std::make_unique<QiFunc_file_exist>() });
+	insert({ "file_copy", std::make_unique<QiFunc_file_copy>() });
+	insert({ "file_move", std::make_unique<QiFunc_file_move>() });
+	insert({ "file_rename", std::make_unique<QiFunc_file_rename>() });
 	insert({ "file_remove", std::make_unique<QiFunc_file_remove>() });
 	insert({ "file_open", std::make_unique<QiFunc_file_open>() });
+	insert({ "file_read", std::make_unique<QiFunc_file_read>() });
+	insert({ "file_write", std::make_unique<QiFunc_file_write>() });
 
 	insert({ "csv_rows", std::make_unique<QiFunc_csv_rows>() });
 	insert({ "csv_cols", std::make_unique<QiFunc_csv_cols>() });
@@ -2160,6 +2308,7 @@ QiFuncMap::QiFuncMap()
 
 	insert({ "proc_find", std::make_unique<QiFunc_proc_find>() });
 	insert({ "proc_close", std::make_unique<QiFunc_proc_close>() });
+	insert({ "proc_path", std::make_unique<QiFunc_proc_path>() });
 
 	insert({ "mutex_lock", std::make_unique<QiFunc_mutex_lock>() });
 	insert({ "mutex_try_lock", std::make_unique<QiFunc_mutex_try_lock>() });

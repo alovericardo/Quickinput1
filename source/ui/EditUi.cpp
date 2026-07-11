@@ -18,7 +18,8 @@ EditUi::EditUi(Macro* macro) : macro(macro), actionsRoot(&macro->acRun), actions
 	Init();
 	Event();
 	StyleGroup();
-	Forward(QString::fromUtf8("编辑 - ") + macro->name, actionsRoot);
+	LoadLanguage();
+	Forward(lang_trans("编辑") + " - " + macro->name, actionsRoot);
 }
 
 void EditUi::Init()
@@ -39,11 +40,11 @@ void EditUi::Init()
 		ui.action_table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeMode::Fixed);
 		ui.action_table->verticalHeader()->setDefaultAlignment(Qt::AlignCenter);
 		ui.action_table->verticalHeader()->setDefaultSectionSize(0);
-		ui.action_table->setHorizontalHeaderItem(tableColumn_debug, new QTableWidgetItem("调试"));
-		ui.action_table->setHorizontalHeaderItem(tableColumn_disable, new QTableWidgetItem("禁用"));
-		ui.action_table->setHorizontalHeaderItem(tableColumn_type, new QTableWidgetItem("功能"));
-		ui.action_table->setHorizontalHeaderItem(tableColumn_param, new QTableWidgetItem("参数"));
-		ui.action_table->setHorizontalHeaderItem(tableColumn_mark, new QTableWidgetItem("备注"));
+		ui.action_table->setHorizontalHeaderItem(tableColumn_debug, new QTableWidgetItem(lang_trans(" 调试 ")));
+		ui.action_table->setHorizontalHeaderItem(tableColumn_disable, new QTableWidgetItem(lang_trans(" 禁用 ")));
+		ui.action_table->setHorizontalHeaderItem(tableColumn_type, new QTableWidgetItem(lang_trans(" 功能 ")));
+		ui.action_table->setHorizontalHeaderItem(tableColumn_param, new QTableWidgetItem(lang_trans(" 参数 ")));
+		ui.action_table->setHorizontalHeaderItem(tableColumn_mark, new QTableWidgetItem(lang_trans(" 备注 ")));
 		ui.action_table->horizontalHeader()->setSectionResizeMode(tableColumn_debug, QHeaderView::ResizeMode::Fixed);
 		ui.action_table->horizontalHeader()->setSectionResizeMode(tableColumn_disable, QHeaderView::ResizeMode::Fixed);
 		ui.action_table->horizontalHeader()->setSectionResizeMode(tableColumn_type, QHeaderView::ResizeMode::Fixed);
@@ -51,8 +52,8 @@ void EditUi::Init()
 		ui.action_table->horizontalHeader()->setSectionResizeMode(tableColumn_mark, QHeaderView::ResizeMode::Stretch);
 		ui.action_table->setColumnWidth(tableColumn_debug, 35);
 		ui.action_table->setColumnWidth(tableColumn_disable, 50);
-		ui.action_table->setColumnWidth(tableColumn_type, 100);
-		ui.action_table->setColumnWidth(tableColumn_param, 300);
+		ui.action_table->setColumnWidth(tableColumn_type, 150);
+		ui.action_table->setColumnWidth(tableColumn_param, 250);
 	}
 	if ("context menu")
 	{
@@ -93,6 +94,7 @@ void EditUi::Init()
 	if ("radio group")
 	{
 		QButtonGroup* actionRbs = new QButtonGroup(this);
+		actionRbs->addButton(ui.action_entry_radio);
 		actionRbs->addButton(ui.action_running_radio);
 		actionRbs->addButton(ui.action_ending_radio);
 		ui.action_running_radio->setChecked(true);
@@ -290,7 +292,7 @@ void EditUi::Event()
 
 	if ("title")
 	{
-		connect(ui.title_close_button, &QPushButton::clicked, this, [this] { Qi::popText->Show("正在保存宏"); QTimer::singleShot(32, [] { Qi::widget.editClose(); }); });
+		connect(ui.title_close_button, &QPushButton::clicked, this, [this] { Qi::popText->Show(lang_trans("正在保存宏")); QTimer::singleShot(32, [] { Qi::widget.editClose(); }); });
 		connect(ui.title_back_button, &QPushButton::clicked, this, [this] { Back(); });
 		connect(ui.title_run_button, &QPushButton::clicked, this, [this] {
 			if (macro->thread.active())
@@ -300,12 +302,13 @@ void EditUi::Event()
 					macro->thread.stop();
 				}
 				macro->interpreter->DebugContinue();
+				Qi::debug = 0;
 			}
 			else
 			{
-				Qi::debug = true;
+				Qi::debug = ui.action_entry_radio->isChecked() ? 2 : 1;
 				timeBeginPeriod(1);
-				ui.action_running_radio->isChecked() ? macro->thread.run_start(macro) : macro->thread.end_start(macro);
+				ui.action_ending_radio->isChecked() ? macro->thread.end_start(macro) : macro->thread.run_start(macro);
 				testTimer->start();
 			}
 			SetDebugState(debug_run);
@@ -353,7 +356,7 @@ void EditUi::Event()
 				Macro macro = rw.Start();
 				if (macro.acRun) actions->append(std::move(macro.acRun));
 			}
-			else Qi::popText->Popup(2000, "窗口已失效");
+			else Qi::popText->Popup(2000, lang_trans("窗口已失效"));
 			show();
 			Qi::widget.dialogActive = false;
 			Reload();
@@ -370,6 +373,13 @@ void EditUi::Event()
 		// drag
 		ui.action_table->viewport()->installEventFilter(this);
 		// actions
+		connect(ui.action_entry_radio, &QRadioButton::toggled, this, [this](bool state) {
+			if (state && (layers.size() == 1))
+			{
+				layers.first().actions = actionsRoot = actions = &macro->acEnt;
+				Reload();
+			}
+			});
 		connect(ui.action_running_radio, &QRadioButton::toggled, this, [this](bool state) {
 			if (state && (layers.size() == 1))
 			{
@@ -535,7 +545,7 @@ void EditUi::Event()
 		connect(listMenu->adv_paste->replace, &QAction::triggered, this, [this] { ItemPasteReplace(); });
 
 		connect(titleMenu->back, &QAction::triggered, this, [this]() { Back(); });
-		connect(titleMenu->save, &QAction::triggered, this, [this]() { Qi::popText->Show("正在保存宏"); QTimer::singleShot(32, [] { Qi::widget.editClose(); }); });
+		connect(titleMenu->save, &QAction::triggered, this, [this]() { Qi::popText->Show(lang_trans("正在保存宏")); QTimer::singleShot(32, [] { Qi::widget.editClose(); }); });
 		connect(titleMenu->discard, &QAction::triggered, this, [this]() { Exit(false); });
 	}
 	if ("action list")
@@ -566,7 +576,7 @@ void EditUi::Event()
 			{
 				testTimer->stop();
 				timeEndPeriod(1);
-				Qi::debug = false;
+				Qi::debug = 0;
 				Sleep(300);
 				SetDebugState(debug_idel);
 			}
@@ -615,6 +625,7 @@ void EditUi::Event_Action_Widget()
 		});
 	// move
 	connect(ui.mouse_position_button, &QPushButton::clicked, this, [this] {
+		hide();
 		QPointSelection ps;
 		POINT pt;
 		if (macro->wndState)
@@ -636,8 +647,10 @@ void EditUi::Event_Action_Widget()
 		mouse.x = pt.x;
 		mouse.y = pt.y;
 		WidgetSet(mouse);
+		show();
 		});
 	connect(ui.mouse_move_button, &QPushButton::clicked, this, [this] {
+		hide();
 		QDistanceSelector ds;
 		RECT rect;
 		if (macro->wndState)
@@ -657,6 +670,7 @@ void EditUi::Event_Action_Widget()
 		mouse.x = rect.right - rect.left;
 		mouse.y = rect.bottom - rect.top;
 		WidgetSet(mouse);
+		show();
 		});
 	connect(ui.mouse_position_radio, &QRadioButton::toggled, this, [this](bool state) {
 		if (state)
@@ -693,6 +707,7 @@ void EditUi::Event_Action_Widget()
 	connect(ui.keyBlock_all_check, &QCheckBox::toggled, this, [this](bool check) { if (check)ui.keyBlock_move_check->setChecked(false); });
 	// color
 	connect(ui.color_rect_button, &QPushButton::clicked, this, [this] {
+		hide();
 		QRectSelection rs;
 		RECT rect;
 		Rgba rgba;
@@ -734,8 +749,10 @@ void EditUi::Event_Action_Widget()
 			color.rgbe.b = rgba.b;
 		}
 		WidgetSet(color);
+		show();
 		});
 	connect(ui.color_rgb_button, &QPushButton::clicked, this, [this] {
+		hide();
 		QColorSelection cs;
 		QColor c = cs.Start();
 		QColorDialog cd(c, this);
@@ -746,9 +763,11 @@ void EditUi::Event_Action_Widget()
 		color.rgbe.g = cd.currentColor().green();
 		color.rgbe.b = cd.currentColor().blue();
 		WidgetSet(color);
+		show();
 		});
 	// image
 	connect(ui.image_rect_button, &QPushButton::clicked, this, [this] {
+		hide();
 		QRectSelection rs;
 		RECT rect;
 		if (macro->wndState)
@@ -769,8 +788,10 @@ void EditUi::Event_Action_Widget()
 		QiImage image(WidgetGetImage());
 		image.rect = rect;
 		WidgetSet(image);
+		show();
 		});
 	connect(ui.image_shot_button, &QPushButton::clicked, this, [this] {
+		hide();
 		QRectSelection rs;
 		RECT rect = rs.Start();
 		if (rect.right && rect.bottom)
@@ -780,9 +801,11 @@ void EditUi::Event_Action_Widget()
 			image.map = imageMap;
 			WidgetSet(image);
 		}
+		show();
 		});
 	// ocr
 	connect(ui.ocr_rect_button, &QPushButton::clicked, this, [this] {
+		hide();
 		QRectSelection rs;
 		RECT rect;
 		if (macro->wndState)
@@ -803,23 +826,24 @@ void EditUi::Event_Action_Widget()
 		QiOcr ocr(WidgetGetOcr());
 		ocr.rect = rect;
 		WidgetSet(ocr);
+		show();
 		});
 	connect(ui.ocr_test_button, &QPushButton::clicked, this, [this] {
 		if (!Qi::ocr)
 		{
-			MsgBox::Warning(L"没有安装OCR组件，无法使用文字识别功能");
+			MsgBox::Warning(lang_trans(L"没有安装OCR组件，无法使用文字识别功能"));
 			return;
 		}
 		const QiOcr& ocr = WidgetGetOcr();
 		std::string text = Qi::ocr.scan(QiCvt::SR_AtR(ocr.rect, macro->range), ocr.row);
 		if (text.empty())
 		{
-			Qi::popText->Popup("没有识别到内容");
+			Qi::popText->Popup(lang_trans("没有识别到内容"));
 		}
 		else
 		{
 			QString str = QString::fromStdString(text);
-			str.replace(QChar('\n'), "");
+			str.replace(QChar(L'\n'), QString());
 			Qi::popText->Popup(str);
 		}
 		});
@@ -850,6 +874,7 @@ void EditUi::Event_Action_Widget()
 	connect(ui.msgView_level_err_radio, &QRadioButton::clicked, [this] { ui.msgView_type_add_radio->setChecked(true); });
 	// range
 	connect(ui.range_rect_button, &QPushButton::clicked, this, [this] {
+		hide();
 		QRectSelection rs;
 		RECT rect;
 		Rgba rgba;
@@ -885,8 +910,10 @@ void EditUi::Event_Action_Widget()
 		QiRangeSet range;
 		range.rect = rect;
 		WidgetSet(range);
+		show();
 		});
 	connect(ui.range_wnd_button, &QPushButton::clicked, this, [this] {
+		hide();
 		WndInfo w = QiFn::WindowSelection();
 		if (w.wnd)
 		{
@@ -898,6 +925,7 @@ void EditUi::Event_Action_Widget()
 			range.var = ui.range_id_edit->text();
 			WidgetSet(range);
 		}
+		show();
 		});
 }
 // TODO: new action's preview
@@ -1023,71 +1051,72 @@ void EditUi::StyleGroup()
 {
 	if ("this window")
 	{
-		setProperty("group", "frame");
-		ui.title_widget->setProperty("group", "title");
-		ui.content_widget->setProperty("group", "edit-client");
-		ui.title_run_button->setProperty("group", "title-title_run_button");
-		ui.title_back_button->setProperty("group", "title-back_button");
-		ui.title_close_button->setProperty("group", "title-close_button");
+		setProperty(Prop::style_group, "frame");
+		style_set_group(ui.title_widget, "title");
+		style_set_group(ui.content_widget, "edit-client");
+		style_set_group(ui.title_run_button, "title-title_run_button");
+		style_set_group(ui.title_back_button, "title-back_button");
+		style_set_group(ui.title_close_button, "title-close_button");
 	}
 	if ("tool button")
 	{
-		ui.window_select_button->setProperty("group", "get_button");
+		style_set_group(ui.window_select_button, "get_button");
 	}
 	if ("operation button")
 	{
-		BindSafeIter(bind_add_button, [this](QPushButton* p, size_t) { p->setProperty("group", "edit-add_button"); });
-		BindSafeIter(bind_chg_button, [this](QPushButton* p, size_t) { p->setProperty("group", "edit-add_button"); });
-		BindSafeIter(bind_edt_button, [this](QPushButton* p, size_t) { p->setProperty("group", "edit-edit_button"); });
-		BindSafeIter(bind_edt2_button, [this](QPushButton* p, size_t) { p->setProperty("group", "edit-edit_button"); });
-		BindSafeIter(bind_tab_button, [this](QPushButton* p, size_t) { p->setProperty("group", "edit-tab_button"); });
-		ui.rec_button->setProperty("group", "edit-add_button");
-		ui.rec_window_button->setProperty("group", "edit-add_button");
-		ui.ocr_test_button->setProperty("group", "edit-add_button");
-		ui.varOperator_test_button->setProperty("group", "edit-add_button");
-		ui.range_wnd_button->setProperty("group", "edit-add_button");
+		BindSafeIter(bind_add_button, [this](QPushButton* p, size_t) { style_set_group(p, "edit-add_button"); });
+		BindSafeIter(bind_chg_button, [this](QPushButton* p, size_t) { style_set_group(p, "edit-add_button"); });
+		BindSafeIter(bind_edt_button, [this](QPushButton* p, size_t) { style_set_group(p, "edit-edit_button"); });
+		BindSafeIter(bind_edt2_button, [this](QPushButton* p, size_t) { style_set_group(p, "edit-edit_button"); });
+		BindSafeIter(bind_tab_button, [this](QPushButton* p, size_t) { style_set_group(p, "edit-tab_button"); });
+		style_set_group(ui.rec_button, "edit-add_button");
+		style_set_group(ui.rec_window_button, "edit-add_button");
+		style_set_group(ui.ocr_test_button, "edit-add_button");
+		style_set_group(ui.varOperator_test_button, "edit-add_button");
+		style_set_group(ui.range_wnd_button, "edit-add_button");
 	}
 	if ("check box")
 	{
-		ui.tab_lock_check->setProperty("group", "check");
-		ui.tab_hideTip_check->setProperty("group", "check");
-		ui.tab_markPoint_check->setProperty("group", "check");
-		ui.tab_range_check->setProperty("group", "check");
+		style_set_group(ui.tab_lock_check, "check");
+		style_set_group(ui.tab_hideTip_check, "check");
+		style_set_group(ui.tab_markPoint_check, "check");
+		style_set_group(ui.tab_range_check, "check");
 
-		ui.window_state_check->setProperty("group", "check");
-		ui.window_child_check->setProperty("group", "check");
+		style_set_group(ui.window_state_check, "check");
+		style_set_group(ui.window_child_check, "check");
 	}
 	if ("radio button")
 	{
-		ui.action_running_radio->setProperty("group", "radio");
-		ui.action_ending_radio->setProperty("group", "radio");
+		style_set_group(ui.action_entry_radio, "radio");
+		style_set_group(ui.action_running_radio, "radio");
+		style_set_group(ui.action_ending_radio, "radio");
 	}
 	if ("tab widget")
 	{
-		ui.tab_stacked_widget->setProperty("group", "tab_widget");
+		style_set_group(ui.tab_stacked_widget, "tab_widget");
 	}
 	if ("edit")
 	{
-		ui.window_name_edit->setProperty("group", "line_edit");
+		style_set_group(ui.window_name_edit, "line_edit");
 	}
 	if ("list")
 	{
-		ui.jumpPoint_list->setProperty("group", "action_table_header");
-		ui.block_list->setProperty("group", "action_table_header");
+		style_set_group(ui.jumpPoint_list, "action_table_header");
+		style_set_group(ui.block_list, "action_table_header");
 	}
 	if ("table")
 	{
-		ui.action_table->setProperty("group", "action_table");
-		ui.action_table->horizontalHeader()->setProperty("group", "action_table_header");
-		ui.action_table->verticalHeader()->setProperty("group", "action_table_header");
+		style_set_group(ui.action_table, "action_table");
+		style_set_group(ui.action_table->horizontalHeader(), "action_table_header");
+		style_set_group(ui.action_table->verticalHeader(), "action_table_header");
 		ui.action_table->setStyleSheet("QTableCornerButton::section,QHeaderView::section,QScrollBar,QScrollBar::sub-line,QScrollBar::add-line{background-color:rgba(0,0,0,0);border:none}QScrollBar::handle{background-color:rgba(128,128,128,0.3);border:none}");
 	}
 	if ("menu")
 	{
-		titleMenu->setProperty("group", "context_menu");
-		listMenu->setProperty("group", "context_menu");
-		listMenu->select->setProperty("group", "context_menu");
-		listMenu->adv_paste->setProperty("group", "context_menu");
+		style_set_group(titleMenu, "context_menu");
+		style_set_group(listMenu, "context_menu");
+		style_set_group(listMenu->select, "context_menu");
+		style_set_group(listMenu->adv_paste, "context_menu");
 	}
 	if ("table corner button")
 	{
@@ -1103,14 +1132,14 @@ void EditUi::StyleGroup()
 				box->setContentsMargins(0, 0, 0, 0);
 				QWidget* widget = new QWidget(corner);
 				box->addWidget(widget);
-				corner->setProperty("group", "action_table_header");
-				widget->setProperty("group", "action_table_header");
+				style_set_group(corner, "action_table_header");
+				style_set_group(widget, "action_table_header");
 				break;
 			}
 			else if (name == "QLineEdit")
 			{
 				QLineEdit* lineEdit = (QLineEdit*)obj;
-				lineEdit->setProperty("group", "action_table_header");
+				style_set_group(lineEdit, "action_table_header");
 			}
 		}
 	}
@@ -1121,15 +1150,46 @@ void EditUi::StyleGroup()
 			{
 				if (!object->property("group").isNull()) continue;
 				const QString name = object->objectName();
-				if (name.indexOf("_check") != -1) object->setProperty("group", "check");
-				else if (name.indexOf("_radio") != -1) object->setProperty("group", "radio");
-				else if (name.indexOf("_edit") != -1) object->setProperty("group", "line_edit");
-				else if (name.indexOf("_textedit") != -1) object->setProperty("group", "text_edit");
-				else if (name.indexOf("_keyedit") != -1) object->setProperty("group", "key_edit");
-				else if (name.indexOf("_button") != -1) object->setProperty("group", "get_button");
+				if (name.indexOf("_check") != -1) style_set_group(object, "check");
+				else if (name.indexOf("_radio") != -1) style_set_group(object, "radio");
+				else if (name.indexOf("_edit") != -1) style_set_group(object, "line_edit");
+				else if (name.indexOf("_textedit") != -1) style_set_group(object, "text_edit");
+				else if (name.indexOf("_keyedit") != -1) style_set_group(object, "key_edit");
+				else if (name.indexOf("_button") != -1) style_set_group(object, "get_button");
 			}
 			});
 	}
+}
+void EditUi::LoadLanguage()
+{
+	lang_trans_t(ui.action_entry_radio);
+	lang_trans_t(ui.action_running_radio);
+	lang_trans_t(ui.action_ending_radio);
+	lang_trans_t(ui.title_var_label);
+	lang_trans_t(ui.title_run_label);
+	lang_trans_t(ui.title_close_button);
+	lang_trans_t(ui.title_back_button);
+	lang_trans_t(ui.tab_lock_check);
+	lang_trans_t(ui.tab_hideTip_check);
+	lang_trans_t(ui.tab_markPoint_check);
+	lang_trans_t(ui.tab_range_check);
+	BindSafeIter(bind_tab_button, [this](QPushButton* p, size_t i) { lang_trans_t(p); });
+	auto trans = [](QGroupBox* p, size_t i) {
+		lang_trans_ti(p);
+		for (auto& object : p->children())
+		{
+			const QString name = object->objectName();
+			const QString class_name = object->metaObject()->className();
+			if (name.indexOf("_label") != -1 && class_name == "QLabel") lang_trans_t(reinterpret_cast<QLabel*>(object));
+			else if (name.indexOf("_check") != -1 && class_name == "QCheckBox") lang_trans_t(reinterpret_cast<QCheckBox*>(object));
+			else if (name.indexOf("_radio") != -1 && class_name == "QRadioButton") lang_trans_t(reinterpret_cast<QRadioButton*>(object));
+			else if (name.indexOf("_edit") != -1 && class_name == "QLineEdit") lang_trans_pht(reinterpret_cast<QLineEdit*>(object));
+			else if (name.indexOf("_button") != -1 && class_name == "QPushButton") lang_trans_t(reinterpret_cast<QPushButton*>(object));
+		}
+	};
+	BindSafeIter(bind_type_group, trans);
+	trans(ui.grp_window, 0);
+	trans(ui.grp_rec, 0);
 }
 
 
@@ -1184,19 +1244,19 @@ void EditUi::SetDebugState(int debugState)
 	this->debugState = debugState;
 	if (debugState == debug_idel)
 	{
-		ui.title_run_label->setText("运行");
+		ui.title_run_label->setText(lang_trans("运行"));
 		ui.title_run_button->setStyleSheet("QPushButton{background-color:#0E0;border-radius:10px}QPushButton:hover{background-color:#0C0}");
 		Disable(false);
 	}
 	else if (debugState == debug_run)
 	{
-		ui.title_run_label->setText("停止(Shift F10)");
+		ui.title_run_label->setText(lang_trans("停止") + "(Shift F10)");
 		ui.title_run_button->setStyleSheet("QPushButton{background-color:#E00;border-radius:10px}QPushButton:hover{background-color:#C00}");
 		Disable(true);
 	}
 	else if (debugState == debug_pause)
 	{
-		ui.title_run_label->setText("继续(F10) 停止(Shift F10)");
+		ui.title_run_label->setText(lang_trans("继续") + "(F10) " + lang_trans("停止") + "(Shift F10)");
 		ui.title_run_button->setStyleSheet("QPushButton{background-color:#FC0;border-radius:10px}QPushButton:hover{background-color:#DA0}");
 	}
 }
@@ -1210,9 +1270,9 @@ void EditUi::SetWindowMode()
 void EditUi::SelectWindow()
 {
 	QPoint pt = pos();
-	move(-1000, -1000);
+	hide();
 	macro->wndInfo = QiFn::WindowSelection();
-	move(pt);
+	show();
 	SetWindowMode();
 }
 void EditUi::Reload()
@@ -1221,6 +1281,7 @@ void EditUi::Reload()
 	actionsHistory = *actions;
 	if (layers.size() > 1)
 	{
+		ui.action_entry_radio->setVisible(false);
 		ui.action_running_radio->setVisible(false);
 		ui.action_ending_radio->setVisible(false);
 		ui.block_add_button->setDisabled(true);
@@ -1228,7 +1289,9 @@ void EditUi::Reload()
 	}
 	else
 	{
-		ui.action_running_radio->setVisible(true), ui.action_ending_radio->setVisible(true);
+		ui.action_entry_radio->setVisible(true);
+		ui.action_running_radio->setVisible(true);
+		ui.action_ending_radio->setVisible(true);
 		ui.block_add_button->setEnabled(true);
 		ui.block_edit_button->setEnabled(true);
 	}
@@ -1261,19 +1324,19 @@ void EditUi::NextEdit(bool edit2)
 		if (edit2)
 		{
 			next = &color.next2;
-			title = "编辑 - 查找颜色（未找到）";
+			title = lang_trans("编辑") + " - " + lang_trans("查找颜色（未找到）");
 		}
 		else
 		{
 			next = &color.next;
-			title = "编辑 - 查找颜色（找到）";
+			title = lang_trans("编辑") + " - " + lang_trans("查找颜色（找到）");
 		}
 	} break;
 	case QiType::loop:
 	{
 		QiLoop& loop = var.to<QiLoop>();
 		next = &loop.next;
-		title = "编辑 - 循环";
+		title = lang_trans("编辑") + " - " + lang_trans("循环");
 	} break;
 	case QiType::keyState:
 	{
@@ -1281,12 +1344,12 @@ void EditUi::NextEdit(bool edit2)
 		if (edit2)
 		{
 			next = &keyState.next2;
-			title = "编辑 - 按键状态（未按下）";
+			title = lang_trans("编辑") + " - " + lang_trans("按键状态（未按下）");
 		}
 		else
 		{
 			next = &keyState.next;
-			title = "编辑 - 按键状态（按下）";
+			title = lang_trans("编辑") + " - " + lang_trans("按键状态（按下）");
 		}
 	} break;
 	case QiType::image:
@@ -1295,12 +1358,12 @@ void EditUi::NextEdit(bool edit2)
 		if (edit2)
 		{
 			next = &image.next2;
-			title = "编辑 - 查找图片（未找到）";
+			title = lang_trans("编辑") + " - " + lang_trans("查找图片（未找到）");
 		}
 		else
 		{
 			next = &image.next;
-			title = "编辑 - 查找图片（找到）";
+			title = lang_trans("编辑") + " - " + lang_trans("查找图片（找到）");
 		}
 	} break;
 	case QiType::timer:
@@ -1309,12 +1372,12 @@ void EditUi::NextEdit(bool edit2)
 		if (edit2)
 		{
 			next = &timer.next2;
-			title = "编辑 - 定时（超时）";
+			title = lang_trans("编辑") + " - " + lang_trans("定时（超时）");
 		}
 		else
 		{
 			next = &timer.next;
-			title = "编辑 - 定时（循环）";
+			title = lang_trans("编辑") + " - " + lang_trans("定时（循环）");
 		}
 	} break;
 	case QiType::dialog:
@@ -1323,19 +1386,19 @@ void EditUi::NextEdit(bool edit2)
 		if (edit2)
 		{
 			next = &dialog.next2;
-			title = "编辑 - 对话框（取消）";
+			title = lang_trans("编辑") + " - " + lang_trans("对话框（取消）");
 		}
 		else
 		{
 			next = &dialog.next;
-			title = "编辑 - 对话框（确认）";
+			title = lang_trans("编辑") + " - " + lang_trans("对话框（确认）");
 		}
 	} break;
 	case QiType::block:
 	{
 		QiBlock& block = var.to<QiBlock>();
 		next = &block.next;
-		title = "编辑 - 块";
+		title = lang_trans("编辑") + " - " + lang_trans("块");
 	} break;
 	case QiType::clock:
 	{
@@ -1343,12 +1406,12 @@ void EditUi::NextEdit(bool edit2)
 		if (edit2)
 		{
 			next = &clock.next2;
-			title = "编辑 - 时钟（未经过）";
+			title = lang_trans("编辑") + " - " + lang_trans("时钟（未经过）");
 		}
 		else
 		{
 			next = &clock.next;
-			title = "编辑 - 时钟（已经过）";
+			title = lang_trans("编辑") + " - " + lang_trans("时钟（已经过）");
 		}
 	} break;
 	case QiType::ocr:
@@ -1357,12 +1420,12 @@ void EditUi::NextEdit(bool edit2)
 		if (edit2)
 		{
 			next = &ocr.next2;
-			title = "编辑 - 文字识别（失败）";
+			title = lang_trans("编辑") + " - " + lang_trans("文字识别（失败）");
 		}
 		else
 		{
 			next = &ocr.next;
-			title = "编辑 - 文字识别（成功）";
+			title = lang_trans("编辑") + " - " + lang_trans("文字识别（成功）");
 		}
 	} break;
 	case QiType::varCondition:
@@ -1371,12 +1434,12 @@ void EditUi::NextEdit(bool edit2)
 		if (edit2)
 		{
 			next = &varCondition.next2;
-			title = "编辑 - 变量条件（否）";
+			title = lang_trans("编辑") + " - " + lang_trans("变量条件（否）");
 		}
 		else
 		{
 			next = &varCondition.next;
-			title = "编辑 - 变量条件（是）";
+			title = lang_trans("编辑") + " - " + lang_trans("变量条件（是）");
 		}
 	} break;
 	case QiType::volume:
@@ -1385,12 +1448,12 @@ void EditUi::NextEdit(bool edit2)
 		if (edit2)
 		{
 			next = &volume.next2;
-			title = "编辑 - 音量检测（小于）";
+			title = lang_trans("编辑") + " - " + lang_trans("音量检测（小于）");
 		}
 		else
 		{
 			next = &volume.next;
-			title = "编辑 - 音量检测（大于）";
+			title = lang_trans("编辑") + " - " + lang_trans("音量检测（大于）");
 		}
 	} break;
 	}
@@ -1438,12 +1501,12 @@ void EditUi::TableUpdate(int index)
 			+ " , " + (ref.v_y.isEmpty() ? QString::number(ref.y) : ref.v_y);
 		if (ref.ex)
 		{
-			param += " | 随机：";
+			param += " | " + lang_trans("随机") + "：";
 			param += QString::number(ref.ex);
 		}
 		if (ref.track)
 		{
-			param += " | 轨迹：";
+			param += " | " +  lang_trans("轨迹") + "：";
 			param += QString::number(ref.speed);
 		}
 	} break;
@@ -1465,7 +1528,7 @@ void EditUi::TableUpdate(int index)
 			+ "," + QString::number(ref.rgbe.g)
 			+ "," + QString::number(ref.rgbe.b)
 			+ "," + QString::number(ref.rgbe.a)
-			+ (ref.move ? " 移动" : "");
+			+ (ref.move ? QString(" ") + lang_trans("移动") : QString());
 		color = QColor(ref.rgbe.r, ref.rgbe.g, ref.rgbe.b, 255);
 	} break;
 	case QiType::loop:
@@ -1476,7 +1539,7 @@ void EditUi::TableUpdate(int index)
 		QString min = ref.v_min.isEmpty() ? QString::number(ref.min) : ref.v_min;
 		QString max = ref.v_max.isEmpty() ? QString::number(ref.max) : ref.v_max;
 
-		if (min == '0' && max == '0') param = "无限";
+		if (min == '0' && max == '0') param = lang_trans("无限");
 		else if (min == max) param = min;
 		else param = min + QString(" ~ ") + max;
 	} break;
@@ -1506,16 +1569,16 @@ void EditUi::TableUpdate(int index)
 			+ " | " + QString::number(ref.map.width())
 			+ "," + QString::number(ref.map.height())
 			+ " | " + QString::number(ref.sim)
-			+ (ref.move ? " 移动" : "");
+			+ (ref.move ? " " + lang_trans("移动") : QString(""));
 	} break;
 	case QiType::popText:
 	{
 		const QiPopText& ref = var.to<QiPopText>();
 		type += QiUi::Symbol::Text;
 		param = QiFn::FoldText(ref.text, 16);
-		param += " |　时长：";
+		param += " |　" + lang_trans("时长") + "：";
 		param += QString::number(ref.time);
-		if (ref.sync) param += " 等待";
+		if (ref.sync) param += " " + lang_trans("等待");
 	} break;
 	case QiType::savePos:
 	{
@@ -1539,7 +1602,7 @@ void EditUi::TableUpdate(int index)
 
 		if (ref.id < 1)
 		{
-			param = "无效锚点id";
+			param = lang_trans("无效锚点id");
 		}
 		else
 		{
@@ -1553,7 +1616,7 @@ void EditUi::TableUpdate(int index)
 			}
 			else
 			{
-				param += " (无效)";
+				param += " (" + lang_trans("无效") + ")";
 			}
 		}
 	} break;
@@ -1588,7 +1651,7 @@ void EditUi::TableUpdate(int index)
 
 		if (ref.id < 1)
 		{
-			param = "无效块id";
+			param = lang_trans("无效块id");
 		}
 		else
 		{
@@ -1602,7 +1665,7 @@ void EditUi::TableUpdate(int index)
 			}
 			else
 			{
-				param += " (无效)";
+				param += " (" + lang_trans("无效") + ")";
 			}
 		}
 	} break;
@@ -1617,10 +1680,10 @@ void EditUi::TableUpdate(int index)
 		const QiKeyBlock& ref = var.to<QiKeyBlock>();
 		type += QiUi::Symbol::Stop;
 
-		if (ref.block) param = "屏蔽：";
-		else param = "解除：";
-		if (ref.vk == QiKeyBlock::all) param += "全部输入";
-		else if (ref.vk == QiKeyBlock::move) param += "鼠标移动";
+		if (ref.block) param = lang_trans("屏蔽") + "：";
+		else param = lang_trans("解除") + "：";
+		if (ref.vk == QiKeyBlock::all) param += lang_trans("全部输入");
+		else if (ref.vk == QiKeyBlock::move) param += lang_trans("鼠标移动");
 		else param += QKeyEdit::keyName(ref.vk);
 
 	} break;
@@ -1639,7 +1702,7 @@ void EditUi::TableUpdate(int index)
 			+ "," + (ref.v_top.isEmpty() ? QString::number(ref.rect.top) : ref.v_top)
 			+ "," + (ref.v_right.isEmpty() ? QString::number(ref.rect.right) : ref.v_right)
 			+ "," + (ref.v_bottom.isEmpty() ? QString::number(ref.rect.bottom) : ref.v_bottom);
-		if (!ref.text.isEmpty()) param += (ref.match ? " 匹配：" : " 搜索：") + QiFn::FoldText(ref.text, 12);
+		if (!ref.text.isEmpty()) param += (ref.match ? " " + lang_trans("匹配") + "：" : " " + lang_trans("搜索") + "：") + QiFn::FoldText(ref.text, 12);
 	} break;
 	case QiType::varOperator:
 	{
@@ -1686,7 +1749,7 @@ void EditUi::TableUpdate(int index)
 	{
 		const QiVolume& ref = var.to<QiVolume>();
 		type += QiUi::Symbol::Speaker;
-		param = ref.max ? "最大：" : "平均：";
+		param = ref.max ? lang_trans("最大") + "：" : lang_trans("平均") + "：";
 		param += QString::number(ref.volume);
 		param += ", ";
 		param += QString::number(ref.time);
@@ -1698,21 +1761,21 @@ void EditUi::TableUpdate(int index)
 		if (ref.state == QiSoundPlay::play)
 		{
 			param = QiFn::FoldText(ref.file, 18, true);
-			if (ref.sync) param += " 等待";
+			if (ref.sync) param += " " + lang_trans("等待");
 		}
-		else if (ref.state == QiSoundPlay::pause) param = "暂停";
-		else if (ref.state == QiSoundPlay::resume) param = "继续";
-		else if (ref.state == QiSoundPlay::stop) param = "停止";
+		else if (ref.state == QiSoundPlay::pause) param = lang_trans("暂停.");
+		else if (ref.state == QiSoundPlay::resume) param = lang_trans("继续.");
+		else if (ref.state == QiSoundPlay::stop) param = lang_trans("停止.");
 	} break;
 	case QiType::msgView:
 	{
 		const QiMsgView& ref = var.to<QiMsgView>();
 		type += QiUi::Symbol::Text;
-		if (ref.option == QiMsgView::set) param = QString("设置：") + QiFn::FoldText(ref.text, 16, true);
-		else if (ref.option == QiMsgView::add) param = QString("添加：") + QiFn::FoldText(ref.text, 16, true);
-		else if (ref.option == QiMsgView::clear) param = "清空";
-		else if (ref.option == QiMsgView::show) param = "显示";
-		else if (ref.option == QiMsgView::hide) param = "隐藏";
+		if (ref.option == QiMsgView::set) param = lang_trans("设置:") + QiFn::FoldText(ref.text, 16, true);
+		else if (ref.option == QiMsgView::add) param = lang_trans("添加:") + QiFn::FoldText(ref.text, 16, true);
+		else if (ref.option == QiMsgView::clear) param = lang_trans("清空");
+		else if (ref.option == QiMsgView::show) param = lang_trans("显示");
+		else if (ref.option == QiMsgView::hide) param = lang_trans("隐藏");
 	} break;
 	case QiType::range:
 	{
@@ -2322,7 +2385,7 @@ QiJump EditUi::WidgetGetJump()
 {
 	QiJump jump;
 	int row = ui.jumpPoint_list->currentRow();
-	if (row > -1) jump.id = ui.jumpPoint_list->item(row)->data(static_cast<int>(DataRole::id)).toInt();
+	if (row > -1) jump.id = ui.jumpPoint_list->item(row)->data(DataRole::id).toInt();
 	return jump;
 }
 QiJumpPoint EditUi::WidgetGetJumpPoint()
@@ -2351,7 +2414,7 @@ QiBlockExec EditUi::WidgetGetBlockExec()
 {
 	QiBlockExec blockExec;
 	int row = ui.block_list->currentRow();
-	if (row > -1) blockExec.id = ui.block_list->item(row)->data(static_cast<int>(DataRole::id)).toInt();
+	if (row > -1) blockExec.id = ui.block_list->item(row)->data(DataRole::id).toInt();
 	return blockExec;
 }
 QiQuickInput EditUi::WidgetGetQuickInput()
@@ -2710,7 +2773,7 @@ void EditUi::ListJumpPointReload()
 		if (action)
 		{
 			QListWidgetItem* item = new QListWidgetItem(QString::number(action->base().id) + QString::fromUtf8("　　　") + action->base().mark);
-			item->setData(static_cast<int>(DataRole::id), action->base().id);
+			item->setData(DataRole::id, action->base().id);
 			ui.jumpPoint_list->addItem(item);
 		}
 	}
@@ -2725,7 +2788,7 @@ void EditUi::ListBlockReload()
 		if (action)
 		{
 			QListWidgetItem* item = new QListWidgetItem(QString::number(action->base().id) + QString::fromUtf8("　　　") + action->base().mark);
-			item->setData(static_cast<int>(DataRole::id), action->base().id);
+			item->setData(DataRole::id, action->base().id);
 			ui.block_list->addItem(item);
 		}
 	}
@@ -2738,7 +2801,7 @@ void EditUi::Back()
 	layers.removeLast();
 	if (layers.isEmpty())
 	{
-		Qi::popText->Show("正在保存宏");
+		Qi::popText->Show(lang_trans("正在保存宏"));
 		QTimer::singleShot(32, [] { Qi::widget.editClose(); });
 	}
 	else
@@ -2765,6 +2828,7 @@ void EditUi::Exit(bool save)
 	actionsHistory.clear();
 	Qi::widget.macroEdited(save);
 	QiJson::SaveJson();
+	Qi::debug = 0;
 	close();
 }
 

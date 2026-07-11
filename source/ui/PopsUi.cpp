@@ -5,12 +5,25 @@ PopsUi::PopsUi()
 	Init();
 	Event();
 	StyleGroup();
+	LoadLanguage();
 }
 
 void PopsUi::Init()
 {
-	bind_text_edit.append(ui.enable_edit);
-	bind_text_edit.append(ui.disable_edit);
+#define pop_trans(s, s_, t) if(s_ == t) s = lang_trans(t);
+	pop_trans(Qi::ui.pop.qe.t, Qi::ui.pop.qe_.t, QiUi::Text::popOn_);
+	pop_trans(Qi::ui.pop.qd.t, Qi::ui.pop.qd_.t, QiUi::Text::popOff_);
+	pop_trans(Qi::ui.pop.we.t, Qi::ui.pop.we_.t, QiUi::Text::popWndOn_);
+	pop_trans(Qi::ui.pop.wd.t, Qi::ui.pop.wd_.t, QiUi::Text::popWndOff_);
+	pop_trans(Qi::ui.pop.qce.t, Qi::ui.pop.qce_.t, QiUi::Text::popClickOn_);
+	pop_trans(Qi::ui.pop.qcd.t, Qi::ui.pop.qcd_.t, QiUi::Text::popClickOff_);
+	pop_trans(Qi::ui.pop.swe.t, Qi::ui.pop.swe_.t, QiUi::Text::popSwOn_);
+	pop_trans(Qi::ui.pop.swd.t, Qi::ui.pop.swd_.t, QiUi::Text::popSwOff_);
+	pop_trans(Qi::ui.pop.dwe.t, Qi::ui.pop.dwe_.t, QiUi::Text::popDownOn_);
+	pop_trans(Qi::ui.pop.dwd.t, Qi::ui.pop.dwd_.t, QiUi::Text::popDownOff_);
+	pop_trans(Qi::ui.pop.upe.t, Qi::ui.pop.upe_.t, QiUi::Text::popUpOn_);
+	pop_trans(Qi::ui.pop.upd.t, Qi::ui.pop.upd_.t, QiUi::Text::popUpOff_);
+
 	bind_text_edit.append(ui.enable_edit);
 	bind_text_edit.append(ui.disable_edit);
 	bind_text_edit.append(ui.window_on_edit);
@@ -46,7 +59,7 @@ void PopsUi::Init()
 	for (auto& i : bind_sound_edit) {
 		i->setAttribute(Qt::WA_Hover, true);
 		i->installEventFilter(this);
-		i->setDialog("选择音频", "音频文件(*.mp3 *.wav)", "C:/Windows/Media");
+		i->setDialog(lang_trans("选择音频"), lang_trans("音频文件") + "(*.mp3 *.wav)", "C:/Windows/Media");
 		i->setFiles(Qi::ui.sounds);
 	}
 	bind_sound_edit.resize(0);
@@ -67,46 +80,46 @@ void PopsUi::Event()
 {
 	connect(ui.title_close_button, &QPushButton::clicked, this, &This::close);
 	// text line edit
-	connect(ui.enable_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.qe.t = text; });
-	connect(ui.disable_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.qd.t = text; });
-	connect(ui.window_on_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.we.t = text; });
-	connect(ui.window_off_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.wd.t = text; });
-	connect(ui.click_on_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.qce.t = text; });
-	connect(ui.click_off_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.qcd.t = text; });
-	connect(ui.switch_on_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.swe.t = text; });
-	connect(ui.switch_off_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.swd.t = text; });
-	connect(ui.down_on_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.dwe.t = text; });
-	connect(ui.down_off_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.dwd.t = text; });
-	connect(ui.up_on_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.upe.t = text; });
-	connect(ui.up_off_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.upd.t = text; });
+	connect(ui.enable_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.qe.t = Qi::ui.pop.qe_.t = text; });
+	connect(ui.disable_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.qd.t = Qi::ui.pop.qd_.t = text; });
+	connect(ui.window_on_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.we.t = Qi::ui.pop.we_.t = text; });
+	connect(ui.window_off_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.wd.t = Qi::ui.pop.wd_.t = text; });
+	connect(ui.click_on_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.qce.t = Qi::ui.pop.qce_.t = text; });
+	connect(ui.click_off_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.qcd.t = Qi::ui.pop.qcd_.t = text; });
+	connect(ui.switch_on_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.swe.t = Qi::ui.pop.swe_.t = text; });
+	connect(ui.switch_off_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.swd.t = Qi::ui.pop.swd_.t = text; });
+	connect(ui.down_on_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.dwe.t = Qi::ui.pop.dwe_.t = text; });
+	connect(ui.down_off_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.dwd.t = Qi::ui.pop.dwd_.t = text; });
+	connect(ui.up_on_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.upe.t = Qi::ui.pop.upe_.t = text; });
+	connect(ui.up_off_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.upd.t = Qi::ui.pop.upd_.t = text; });
 
 	// sound line edit
-	connect(ui.enable_sound_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.qe.s = text; });
-	connect(ui.disable_sound_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.qd.s = text; });
-	connect(ui.window_on_sound_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.we.s = text; });
-	connect(ui.window_off_sound_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.wd.s = text; });
-	connect(ui.click_on_sound_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.qce.s = text; });
-	connect(ui.click_off_sound_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.qcd.s = text; });
-	connect(ui.switch_on_sound_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.swe.s = text; });
-	connect(ui.switch_off_sound_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.swd.s = text; });
-	connect(ui.down_on_sound_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.dwe.s = text; });
-	connect(ui.down_off_sound_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.dwd.s = text; });
-	connect(ui.up_on_sound_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.upe.s = text; });
-	connect(ui.up_off_sound_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.upd.s = text; });
+	connect(ui.enable_sound_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.qe.s = Qi::ui.pop.qe_.s = text; });
+	connect(ui.disable_sound_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.qd.s = Qi::ui.pop.qd_.s = text; });
+	connect(ui.window_on_sound_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.we.s = Qi::ui.pop.we_.s = text; });
+	connect(ui.window_off_sound_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.wd.s = Qi::ui.pop.wd_.s = text; });
+	connect(ui.click_on_sound_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.qce.s = Qi::ui.pop.qce_.s = text; });
+	connect(ui.click_off_sound_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.qcd.s = Qi::ui.pop.qcd_.s = text; });
+	connect(ui.switch_on_sound_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.swe.s = Qi::ui.pop.swe_.s = text; });
+	connect(ui.switch_off_sound_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.swd.s = Qi::ui.pop.swd_.s = text; });
+	connect(ui.down_on_sound_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.dwe.s = Qi::ui.pop.dwe_.s = text; });
+	connect(ui.down_off_sound_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.dwd.s = Qi::ui.pop.dwd_.s = text; });
+	connect(ui.up_on_sound_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.upe.s = Qi::ui.pop.upe_.s = text; });
+	connect(ui.up_off_sound_edit, &QLineEdit::textEdited, this, [](const QString& text) { Qi::ui.pop.upd.s = Qi::ui.pop.upd_.s = text; });
 
 	// button
-	connect(ui.enable_button, &QPushButton::clicked, this, [this](bool) { SelectColor(Qi::ui.pop.qe); Update(); });
-	connect(ui.disable_button, &QPushButton::clicked, this, [this](bool) { SelectColor(Qi::ui.pop.qd); Update(); });
-	connect(ui.window_on_button, &QPushButton::clicked, this, [this](bool) { SelectColor(Qi::ui.pop.we); Update(); });
-	connect(ui.window_off_button, &QPushButton::clicked, this, [this](bool) { SelectColor(Qi::ui.pop.wd); Update(); });
-	connect(ui.click_on_button, &QPushButton::clicked, this, [this](bool) { SelectColor(Qi::ui.pop.qce); Update(); });
-	connect(ui.click_off_button, &QPushButton::clicked, this, [this](bool) { SelectColor(Qi::ui.pop.qcd); Update(); });
-	connect(ui.switch_on_button, &QPushButton::clicked, this, [this](bool) { SelectColor(Qi::ui.pop.swe); Update(); });
-	connect(ui.switch_off_button, &QPushButton::clicked, this, [this](bool) { SelectColor(Qi::ui.pop.swd); Update(); });
-	connect(ui.down_on_button, &QPushButton::clicked, this, [this](bool) { SelectColor(Qi::ui.pop.dwe); Update(); });
-	connect(ui.down_off_button, &QPushButton::clicked, this, [this](bool) { SelectColor(Qi::ui.pop.dwd); Update(); });
-	connect(ui.up_on_button, &QPushButton::clicked, this, [this](bool) { SelectColor(Qi::ui.pop.upe); Update(); });
-	connect(ui.up_off_button, &QPushButton::clicked, this, [this](bool) { SelectColor(Qi::ui.pop.upd); Update(); });
+	connect(ui.enable_button, &QPushButton::clicked, this, [this](bool) { SelectColor(Qi::ui.pop.qe); Qi::ui.pop.qe_.c = Qi::ui.pop.qe.c; Update(); }); 
+	connect(ui.disable_button, &QPushButton::clicked, this, [this](bool) { SelectColor(Qi::ui.pop.qd); Qi::ui.pop.qe_.c = Qi::ui.pop.qd.c; Update(); });
+	connect(ui.window_on_button, &QPushButton::clicked, this, [this](bool) { SelectColor(Qi::ui.pop.we); Qi::ui.pop.we_.c = Qi::ui.pop.we.c; Update(); });
+	connect(ui.window_off_button, &QPushButton::clicked, this, [this](bool) { SelectColor(Qi::ui.pop.wd); Qi::ui.pop.we_.c = Qi::ui.pop.wd.c; Update(); });
+	connect(ui.click_on_button, &QPushButton::clicked, this, [this](bool) { SelectColor(Qi::ui.pop.qce); Qi::ui.pop.qce_.c = Qi::ui.pop.qce.c; Update(); });
+	connect(ui.click_off_button, &QPushButton::clicked, this, [this](bool) { SelectColor(Qi::ui.pop.qcd); Qi::ui.pop.qce_.c = Qi::ui.pop.qcd.c; Update(); });
+	connect(ui.switch_on_button, &QPushButton::clicked, this, [this](bool) { SelectColor(Qi::ui.pop.swe); Qi::ui.pop.swe_.c = Qi::ui.pop.swe.c; Update(); });
+	connect(ui.switch_off_button, &QPushButton::clicked, this, [this](bool) { SelectColor(Qi::ui.pop.swd); Qi::ui.pop.swe_.c = Qi::ui.pop.swd.c; Update(); });
+	connect(ui.down_on_button, &QPushButton::clicked, this, [this](bool) { SelectColor(Qi::ui.pop.dwe); Qi::ui.pop.dwe_.c = Qi::ui.pop.dwe.c; Update(); });
+	connect(ui.down_off_button, &QPushButton::clicked, this, [this](bool) { SelectColor(Qi::ui.pop.dwd); Qi::ui.pop.dwe_.c = Qi::ui.pop.dwd.c; Update(); });
+	connect(ui.up_on_button, &QPushButton::clicked, this, [this](bool) { SelectColor(Qi::ui.pop.upe); Qi::ui.pop.upe_.c = Qi::ui.pop.upe.c; Update(); });
+	connect(ui.up_off_button, &QPushButton::clicked, this, [this](bool) { SelectColor(Qi::ui.pop.upd); Qi::ui.pop.upe_.c = Qi::ui.pop.upd.c; Update(); });
 	// slider
 	connect(ui.disply_x_slider, &QSlider::valueChanged, this, [this](int value) { Qi::ui.pop.x = value; Qi::popText->setPosition(Qi::ui.pop.x, Qi::ui.pop.y); Qi::popText->Show("提示框位置"); });
 	connect(ui.disply_y_slider, &QSlider::valueChanged, this, [this](int value) { Qi::ui.pop.y = value; Qi::popText->setPosition(Qi::ui.pop.x, Qi::ui.pop.y); Qi::popText->Show("提示框位置"); });
@@ -115,38 +128,67 @@ void PopsUi::Event()
 }
 void PopsUi::StyleGroup()
 {
-	setProperty("group", "frame");
-	ui.title_widget->setProperty("group", "title");
-	ui.content_widget->setProperty("group", "client");
-	ui.title_close_button->setProperty("group", "title-close_button");
+	setProperty(Prop::style_group, "frame");
+	style_set_group(ui.title_widget, "title");
+	style_set_group(ui.content_widget, "client");
+	style_set_group(ui.title_close_button, "title-close_button");
 
 	// text
-	ui.enable_edit->setProperty("group", "line_edit");
-	ui.disable_edit->setProperty("group", "line_edit");
-	ui.window_on_edit->setProperty("group", "line_edit");
-	ui.window_off_edit->setProperty("group", "line_edit");
-	ui.click_on_edit->setProperty("group", "line_edit");
-	ui.click_off_edit->setProperty("group", "line_edit");
-	ui.switch_on_edit->setProperty("group", "line_edit");
-	ui.switch_off_edit->setProperty("group", "line_edit");
-	ui.down_on_edit->setProperty("group", "line_edit");
-	ui.down_off_edit->setProperty("group", "line_edit");
-	ui.up_on_edit->setProperty("group", "line_edit");
-	ui.up_off_edit->setProperty("group", "line_edit");
+	style_set_group(ui.enable_edit, "line_edit");
+	style_set_group(ui.disable_edit, "line_edit");
+	style_set_group(ui.window_on_edit, "line_edit");
+	style_set_group(ui.window_off_edit, "line_edit");
+	style_set_group(ui.click_on_edit, "line_edit");
+	style_set_group(ui.click_off_edit, "line_edit");
+	style_set_group(ui.switch_on_edit, "line_edit");
+	style_set_group(ui.switch_off_edit, "line_edit");
+	style_set_group(ui.down_on_edit, "line_edit");
+	style_set_group(ui.down_off_edit, "line_edit");
+	style_set_group(ui.up_on_edit, "line_edit");
+	style_set_group(ui.up_off_edit, "line_edit");
 
 	// sound
-	ui.enable_sound_edit->setProperty("group", "line_edit");
-	ui.disable_sound_edit->setProperty("group", "line_edit");
-	ui.window_on_sound_edit->setProperty("group", "line_edit");
-	ui.window_off_sound_edit->setProperty("group", "line_edit");
-	ui.click_on_sound_edit->setProperty("group", "line_edit");
-	ui.click_off_sound_edit->setProperty("group", "line_edit");
-	ui.switch_on_sound_edit->setProperty("group", "line_edit");
-	ui.switch_off_sound_edit->setProperty("group", "line_edit");
-	ui.down_on_sound_edit->setProperty("group", "line_edit");
-	ui.down_off_sound_edit->setProperty("group", "line_edit");
-	ui.up_on_sound_edit->setProperty("group", "line_edit");
-	ui.up_off_sound_edit->setProperty("group", "line_edit");
+	style_set_group(ui.enable_sound_edit, "line_edit");
+	style_set_group(ui.disable_sound_edit, "line_edit");
+	style_set_group(ui.window_on_sound_edit, "line_edit");
+	style_set_group(ui.window_off_sound_edit, "line_edit");
+	style_set_group(ui.click_on_sound_edit, "line_edit");
+	style_set_group(ui.click_off_sound_edit, "line_edit");
+	style_set_group(ui.switch_on_sound_edit, "line_edit");
+	style_set_group(ui.switch_off_sound_edit, "line_edit");
+	style_set_group(ui.down_on_sound_edit, "line_edit");
+	style_set_group(ui.down_off_sound_edit, "line_edit");
+	style_set_group(ui.up_on_sound_edit, "line_edit");
+	style_set_group(ui.up_off_sound_edit, "line_edit");
+}
+void PopsUi::LoadLanguage()
+{
+	lang_trans_t(ui.title_label);
+
+	lang_trans_t(ui.customText_label);
+	lang_trans_t(ui.type_label);
+	lang_trans_t(ui.tip_label);
+	lang_trans_t(ui.sound_label);
+	lang_trans_t(ui.color_label);
+
+	lang_trans_t(ui.enable_label);
+	lang_trans_t(ui.disable_label);
+	lang_trans_t(ui.window_on_label);
+	lang_trans_t(ui.window_off_label);
+	lang_trans_t(ui.click_on_label);
+	lang_trans_t(ui.click_off_label);
+	lang_trans_t(ui.switch_on_label);
+	lang_trans_t(ui.switch_off_label);
+	lang_trans_t(ui.down_on_label);
+	lang_trans_t(ui.down_off_label);
+	lang_trans_t(ui.up_on_label);
+	lang_trans_t(ui.up_off_label);
+
+	lang_trans_t(ui.disply_label);
+	lang_trans_t(ui.disply_x_label);
+	lang_trans_t(ui.disply_y_label);
+	lang_trans_t(ui.disply_size_label);
+	lang_trans_t(ui.disply_time_label);
 }
 
 void PopsUi::SetColor(const QColor& color, QPushButton* button)
@@ -267,14 +309,14 @@ bool PopsUi::eventFilter(QObject* obj, QEvent* e)
 		}
 		else
 		{
-			if (qs) Qi::popText->Show(QiFn::ParseCustom(p->t, "(文件夹)", ""), p->c);
-			else if (ws) Qi::popText->Show(QiFn::ParseCustom(p->t, "(窗口名)", ""), p->c);
-			else if (qc) Qi::popText->Show(QiFn::ParseCustom(p->t, "(按键)", ""), p->c);
-			else if (mc) Qi::popText->Show(QiFn::ParseCustom(p->t, "(宏名称)", "(1)"), p->c);
+			if (qs) Qi::popText->Show(QiFn::ParseCustom(p->t, "(" + lang_trans("文件夹") + ")", ""), p->c);
+			else if (ws) Qi::popText->Show(QiFn::ParseCustom(p->t, "(" + lang_trans("窗口名") + ")", ""), p->c);
+			else if (qc) Qi::popText->Show(QiFn::ParseCustom(p->t, "(" + lang_trans("按键") + ")", ""), p->c);
+			else if (mc) Qi::popText->Show(QiFn::ParseCustom(p->t, "(" + lang_trans("宏名称") + ")", "(1)"), p->c);
 
-			else if (pt) Qi::popText->Show("提示框位置");
-			else if (sz) Qi::popText->Show("提示框大小");
-			else if (tm) Qi::popText->Popup(Qi::ui.pop.time, "提示框时间");
+			else if (pt) Qi::popText->Show(lang_trans("提示框位置"));
+			else if (sz) Qi::popText->Show(lang_trans("提示框大小"));
+			else if (tm) Qi::popText->Popup(Qi::ui.pop.time, lang_trans("提示框时间"));
 		}
 	}
 	else if (e->type() == QEvent::HoverLeave)

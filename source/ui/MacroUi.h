@@ -6,6 +6,7 @@ class MacroUi : public QWidget
 	Q_OBJECT;
 	using This = MacroUi;
 	Ui::MacroUiClass ui;
+	std::once_flag lang_once;
 	MacroGroups* groups = &Qi::macroGroups;
 	MacroGroup* currentGroup = nullptr;
 	MacroPointers currentMacros;
@@ -18,6 +19,7 @@ private:
 	void Init();
 	void Event();
 	void StyleGroup();
+	void LoadLanguage();
 
 	void ResetWidget();
 	void DisableWidget();

@@ -50,47 +50,20 @@
     <Filter Include="5_Module\proc">
       <UniqueIdentifier>{4a6c4394-461f-4d02-87f1-e545628421a2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3_HeaderOnly\tools">
+      <UniqueIdentifier>{602652ab-e038-4cc9-b99d-9f87645960b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2_Widget\source\dialog">
+      <UniqueIdentifier>{e34a9fd4-4584-4477-bd97-396ccf27a479}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2_Widget\header\dialog">
+      <UniqueIdentifier>{6ea10796-719a-4e78-9f64-f5a5cdf43aae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2_Widget\ui\dialog">
+      <UniqueIdentifier>{b0369c5f-4ec5-432c-bde5-31da8e219b01}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\ui\EditUi.cpp">
-      <Filter>2_Widget\source</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ui\AboutUi.cpp">
-      <Filter>2_Widget\source</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ui\FuncUi.cpp">
-      <Filter>2_Widget\source</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ui\MacroUi.cpp">
-      <Filter>2_Widget\source</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ui\MainUi.cpp">
-      <Filter>2_Widget\source</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ui\MoreUi.cpp">
-      <Filter>2_Widget\source</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ui\PopsUi.cpp">
-      <Filter>2_Widget\source</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ui\RecordUi.cpp">
-      <Filter>2_Widget\source</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ui\SettingsUi.cpp">
-      <Filter>2_Widget\source</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ui\TriggerUi.cpp">
-      <Filter>2_Widget\source</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ui\UpdateUi.cpp">
-      <Filter>2_Widget\source</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ui\VarViewUi.cpp">
-      <Filter>2_Widget\source</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ui\MsgViewUi.cpp">
-      <Filter>2_Widget\source</Filter>
-    </ClCompile>
     <ClCompile Include="source\main.cpp" />
     <ClCompile Include="source\src\input.cpp">
       <Filter>4_SourceOnly</Filter>
@@ -124,6 +97,48 @@
     </ClCompile>
     <ClCompile Include="source\src\trigger.cpp">
       <Filter>5_Module\proc</Filter>
+    </ClCompile>
+    <ClCompile Include="source\src\lang.cpp">
+      <Filter>5_Module\proc</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ui\EditUi.cpp">
+      <Filter>2_Widget\source\dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ui\HelpUi.cpp">
+      <Filter>2_Widget\source\dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ui\MsgViewUi.cpp">
+      <Filter>2_Widget\source\dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ui\PopsUi.cpp">
+      <Filter>2_Widget\source\dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ui\RecordUi.cpp">
+      <Filter>2_Widget\source\dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ui\UpdateUi.cpp">
+      <Filter>2_Widget\source\dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ui\VarViewUi.cpp">
+      <Filter>2_Widget\source\dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ui\AboutUi.cpp">
+      <Filter>2_Widget\source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ui\FuncUi.cpp">
+      <Filter>2_Widget\source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ui\MacroUi.cpp">
+      <Filter>2_Widget\source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ui\MainUi.cpp">
+      <Filter>2_Widget\source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ui\SettingsUi.cpp">
+      <Filter>2_Widget\source</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ui\TriggerUi.cpp">
+      <Filter>2_Widget\source</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -184,12 +199,108 @@
     <ClInclude Include="source\src\capture.h">
       <Filter>3_HeaderOnly</Filter>
     </ClInclude>
+    <ClInclude Include="source\src\tools\aes.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\auddv.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\base.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\code.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\color.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\csvtool.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\file.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\format.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\graphicscapture.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\ihook.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\image.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\input.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\map2d.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\msgbox.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\ntp.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\path.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\process.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\resmonitor.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\restool.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\sound.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\string.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\system.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\task.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\texteditbox.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\thread.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\threadpool.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\threadqueue.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\time.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\tools.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\vector.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\window.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\tools\xboxpad.h">
+      <Filter>3_HeaderOnly\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\src\lang.h">
+      <Filter>5_Module\proc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="source\ui\AboutUi.ui">
-      <Filter>2_Widget\ui</Filter>
-    </QtUic>
-    <QtUic Include="source\ui\EditUi.ui">
       <Filter>2_Widget\ui</Filter>
     </QtUic>
     <QtUic Include="source\ui\FuncUi.ui">
@@ -201,36 +312,36 @@
     <QtUic Include="source\ui\MainUi.ui">
       <Filter>2_Widget\ui</Filter>
     </QtUic>
-    <QtUic Include="source\ui\MoreUi.ui">
-      <Filter>2_Widget\ui</Filter>
-    </QtUic>
-    <QtUic Include="source\ui\RecordUi.ui">
-      <Filter>2_Widget\ui</Filter>
-    </QtUic>
     <QtUic Include="source\ui\SettingsUi.ui">
-      <Filter>2_Widget\ui</Filter>
-    </QtUic>
-    <QtUic Include="source\ui\PopsUi.ui">
       <Filter>2_Widget\ui</Filter>
     </QtUic>
     <QtUic Include="source\ui\TriggerUi.ui">
       <Filter>2_Widget\ui</Filter>
     </QtUic>
-    <QtUic Include="source\ui\UpdateUi.ui">
-      <Filter>2_Widget\ui</Filter>
+    <QtUic Include="source\ui\EditUi.ui">
+      <Filter>2_Widget\ui\dialog</Filter>
     </QtUic>
-    <QtUic Include="source\ui\VarViewUi.ui">
-      <Filter>2_Widget\ui</Filter>
+    <QtUic Include="source\ui\HelpUi.ui">
+      <Filter>2_Widget\ui\dialog</Filter>
     </QtUic>
     <QtUic Include="source\ui\MsgViewUi.ui">
-      <Filter>2_Widget\ui</Filter>
+      <Filter>2_Widget\ui\dialog</Filter>
+    </QtUic>
+    <QtUic Include="source\ui\PopsUi.ui">
+      <Filter>2_Widget\ui\dialog</Filter>
+    </QtUic>
+    <QtUic Include="source\ui\RecordUi.ui">
+      <Filter>2_Widget\ui\dialog</Filter>
+    </QtUic>
+    <QtUic Include="source\ui\UpdateUi.ui">
+      <Filter>2_Widget\ui\dialog</Filter>
+    </QtUic>
+    <QtUic Include="source\ui\VarViewUi.ui">
+      <Filter>2_Widget\ui\dialog</Filter>
     </QtUic>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="source\ui\AboutUi.h">
-      <Filter>2_Widget\header</Filter>
-    </QtMoc>
-    <QtMoc Include="source\ui\EditUi.h">
       <Filter>2_Widget\header</Filter>
     </QtMoc>
     <QtMoc Include="source\ui\FuncUi.h">
@@ -240,12 +351,6 @@
       <Filter>2_Widget\header</Filter>
     </QtMoc>
     <QtMoc Include="source\ui\MainUi.h">
-      <Filter>2_Widget\header</Filter>
-    </QtMoc>
-    <QtMoc Include="source\ui\MoreUi.h">
-      <Filter>2_Widget\header</Filter>
-    </QtMoc>
-    <QtMoc Include="source\ui\RecordUi.h">
       <Filter>2_Widget\header</Filter>
     </QtMoc>
     <QtMoc Include="source\ui\SettingsUi.h">
@@ -269,9 +374,6 @@
     <QtMoc Include="source\ui\widget\QRectView.h">
       <Filter>2_Widget\widget</Filter>
     </QtMoc>
-    <QtMoc Include="source\ui\PopsUi.h">
-      <Filter>2_Widget\header</Filter>
-    </QtMoc>
     <QtMoc Include="source\ui\widget\QKeyEdit.h">
       <Filter>2_Widget\widget</Filter>
     </QtMoc>
@@ -281,17 +383,11 @@
     <QtMoc Include="source\ui\widget\QWindowSelection.h">
       <Filter>2_Widget\widget</Filter>
     </QtMoc>
-    <QtMoc Include="source\ui\UpdateUi.h">
-      <Filter>2_Widget\header</Filter>
-    </QtMoc>
     <QtMoc Include="source\ui\widget\QMacroTable.h">
       <Filter>2_Widget\widget</Filter>
     </QtMoc>
     <QtMoc Include="source\ui\widget\QEditDialog.h">
       <Filter>2_Widget\widget</Filter>
-    </QtMoc>
-    <QtMoc Include="source\ui\VarViewUi.h">
-      <Filter>2_Widget\header</Filter>
     </QtMoc>
     <QtMoc Include="source\ui\widget\QTextDialog.h">
       <Filter>2_Widget\widget</Filter>
@@ -305,8 +401,26 @@
     <QtMoc Include="source\ui\widget\QFrameless.h">
       <Filter>2_Widget\widget</Filter>
     </QtMoc>
+    <QtMoc Include="source\ui\EditUi.h">
+      <Filter>2_Widget\header\dialog</Filter>
+    </QtMoc>
+    <QtMoc Include="source\ui\HelpUi.h">
+      <Filter>2_Widget\header\dialog</Filter>
+    </QtMoc>
     <QtMoc Include="source\ui\MsgViewUi.h">
-      <Filter>2_Widget\header</Filter>
+      <Filter>2_Widget\header\dialog</Filter>
+    </QtMoc>
+    <QtMoc Include="source\ui\PopsUi.h">
+      <Filter>2_Widget\header\dialog</Filter>
+    </QtMoc>
+    <QtMoc Include="source\ui\RecordUi.h">
+      <Filter>2_Widget\header\dialog</Filter>
+    </QtMoc>
+    <QtMoc Include="source\ui\UpdateUi.h">
+      <Filter>2_Widget\header\dialog</Filter>
+    </QtMoc>
+    <QtMoc Include="source\ui\VarViewUi.h">
+      <Filter>2_Widget\header\dialog</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

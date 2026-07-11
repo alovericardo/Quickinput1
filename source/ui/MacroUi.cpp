@@ -3,17 +3,15 @@
 #include "RecordUi.h"
 #include "EditUi.h"
 
-const QString exportFilter = QString("Json文本宏(*") + Qi::macroType + ");;" + "Qim二进制宏(*" + Qi::macroQimType + ")";
-const QString importFilter = QString("Quickinput宏(*") + Qi::macroType + " *" + Qi::macroQimType + ");;" + "Json文本宏(*" + Qi::macroType + ");;" + "Qim二进制宏(*" + Qi::macroQimType + ")";
-
 MacroUi::MacroUi(QWidget* parent) : QWidget(parent)
 {
+	Qi::widget.macro = this;
 	ui.setupUi(this);
 	setWindowFlags(Qt::FramelessWindowHint);
 	Init();
 	Event();
 	StyleGroup();
-	Qi::popText->Show("正在加载宏");
+	Qi::popText->Show(lang_trans("正在加载宏"));
 	QTimer::singleShot(32, [] { Qi::widget.macroLoad(); });
 
 #ifdef Q_EDIT_HIDE
@@ -69,7 +67,7 @@ void MacroUi::Event()
 		if (!table) return;
 		currentGroup = &groups->at(index);
 		QEditDialog edit;
-		edit.edit()->setProperty("group", "line_edit");
+		style_set_group(edit.edit(), "line_edit");
 		QPoint pos = table->mapToGlobal(QPoint(0, 0));
 		edit.setGeometry(pos.x(), pos.y(), table->width(), table->horizontalHeader()->height());
 		edit.raise();
@@ -129,7 +127,7 @@ void MacroUi::Event()
 		Macro macro;
 		macro.mode = Macro::down;
 		macro.count = 1;
-		macro.name = currentGroup->makeName("宏");
+		macro.name = currentGroup->makeName(lang_trans("宏"));
 		macro.groupName = currentGroup->name;
 		macro.groupBase = currentGroup->base;
 		macro.storageType = Qi::set.save_type;
@@ -138,12 +136,13 @@ void MacroUi::Event()
 		ResetWidget();
 		DisableWidget();
 		});
-	connect(ui.edit_button, &QPushButton::clicked, this, [this] { if (!isSold()) return; Qi::popText->Show("正在加载宏"); QTimer::singleShot(32, [] { Qi::widget.macroEdit(); }); });
+	connect(ui.edit_button, &QPushButton::clicked, this, [this] { if (!isSold()) return; Qi::popText->Show(lang_trans("正在加载宏")); QTimer::singleShot(32, [] { Qi::widget.macroEdit(); }); });
 	connect(ui.export_button, &QPushButton::clicked, this, [this] {
 		if (!isSold()) return;
 		Qi::widget.dialogActive = true;
 		Macro& macro = *currentMacros.front();
-		QString des = QFileDialog::getSaveFileName(this, "导出", macro.name, exportFilter);
+		const QString exportFilter = lang_trans("Json文本宏") + "(*" + Qi::macroType + ");;" + lang_trans("Qim二进制宏") + "(*" + Qi::macroQimType + ")";
+		QString des = QFileDialog::getSaveFileName(this, lang_trans("导出"), macro.name, exportFilter);
 		if (des.size() > 4)
 		{
 			const QString back = des.mid(des.size() - 5);
@@ -151,14 +150,15 @@ void MacroUi::Event()
 			if (back.indexOf(Qi::macroQimType) != -1) r = macro.saveTo(des, Macro::StorageType::QIM);
 			else if (back.indexOf(Qi::macroType) != -1) r = macro.saveTo(des, Macro::StorageType::JSON);
 			else r = macro.saveTo(des, Macro::StorageType::CURRENT);
-			if (!r) MsgBox::Error(L"导出宏失败");
+			if (!r) MsgBox::Error(lang_trans("导出宏失败").toStdWString());
 		}
 		Qi::widget.dialogActive = false;
 		});
 	connect(ui.import_button, &QPushButton::clicked, this, [this] {
 		if (!SelectGroup()) return;
 		Qi::widget.dialogActive = true;
-		QString src = QFileDialog::getOpenFileName(this, "导入", {}, importFilter);
+		const QString importFilter = QString("Quickinput ") + lang_trans("宏") + "(*" + Qi::macroType + " * " + Qi::macroQimType + ");;" + lang_trans("Json文本宏") + "(*" + Qi::macroType + ");;" + lang_trans("Qim二进制宏") + "(*" + Qi::macroQimType + ")";
+		QString src = QFileDialog::getOpenFileName(this, lang_trans("导入"), {}, importFilter);
 		if (src.size() > 4)
 		{
 			Macro::StorageType type = Macro::StorageType::JSON;
@@ -166,10 +166,10 @@ void MacroUi::Event()
 			if (back.indexOf(Qi::macroQimType) != -1) type = Macro::StorageType::QIM;
 
 			QFileInfo info(src);
-			if (!QDir(Qi::macroDir).exists() && !QDir(Qi::macroDir).mkdir(Qi::macroDir)) MsgBox::Error(L"创建宏目录失败");
+			if (!QDir(Qi::macroDir).exists() && !QDir(Qi::macroDir).mkdir(Qi::macroDir)) MsgBox::Error(lang_trans("创建宏目录失败").toStdWString());
 			if (!QFile::copy(src, currentGroup->makePath(info.baseName(), type)))
 			{
-				MsgBox::Error(L"导入宏失败");
+				MsgBox::Error(lang_trans("导入宏失败").toStdWString());
 				return;
 			}
 			Macro::loadAll();
@@ -179,17 +179,17 @@ void MacroUi::Event()
 		}
 		Qi::widget.dialogActive = false;
 		});
-	connect(ui.reload_button, &QPushButton::clicked, this, [this] { Qi::popText->Show("正在加载宏"); QTimer::singleShot(32, [] { Qi::widget.macroLoad(); }); });
+	connect(ui.reload_button, &QPushButton::clicked, this, [this] { Qi::popText->Show(lang_trans("正在加载宏")); QTimer::singleShot(32, [] { Qi::widget.macroLoad(); }); });
 	connect(ui.add_group_button, &QPushButton::clicked, this, [this] {
 		QString path = Qi::macroDir + Qi::macroGroups.append(MacroGroup(false, Qi::macroGroups.makeName())).name;
 
 		if (!QDir(Qi::macroDir).exists() && !QDir(Qi::macroDir).mkdir(Qi::macroDir))
 		{
-			MsgBox::Error(L"创建宏目录失败");
+			MsgBox::Error(lang_trans("创建宏目录失败").toStdWString());
 			return;
 		}
 
-		if (!QDir(path).exists() && !QDir(path).mkdir(path)) MsgBox::Error(L"创建分组目录失败");
+		if (!QDir(path).exists() && !QDir(path).mkdir(path)) MsgBox::Error(lang_trans("创建分组目录失败").toStdWString());
 		SelectGroup();
 		TableUpdate();
 		ResetWidget();
@@ -197,10 +197,10 @@ void MacroUi::Event()
 		});
 	connect(ui.delete_group_button, &QPushButton::clicked, this, [this] {
 		if (!currentGroup) return;
-		if (currentGroup->macros.not_empty() && MsgBox::Warning(L"确认删除分组的全部宏？", L"Warning", MB_ICONWARNING | MB_YESNO) != IDYES) return;
+		if (currentGroup->macros.not_empty() && MsgBox::Warning(lang_trans("确认删除分组的全部宏?").toStdWString(), L"Warning", MB_ICONWARNING | MB_YESNO) != IDYES) return;
 		if (!currentGroup->remove())
 		{
-			MsgBox::Error(L"删除分组失败");
+			MsgBox::Error(lang_trans("删除分组失败").toStdWString());
 			return;
 		}
 		groups->remove_of_find(currentGroup);
@@ -216,7 +216,7 @@ void MacroUi::Event()
 		{
 			size_t pos = currentGroup->macros.indexOf(i);
 			if (pos != Macros::end_pos) index.push_back(pos);
-			if (!QFile::moveToTrash(i->makePath())) MsgBox::Error(L"删除宏文件失败");
+			if (!QFile::moveToTrash(i->makePath())) MsgBox::Error(lang_trans("删除宏文件失败").toStdWString());
 		}
 		currentGroup->macros.remove(index);
 
@@ -227,16 +227,42 @@ void MacroUi::Event()
 }
 void MacroUi::StyleGroup()
 {
-	ui.record_button->setProperty("group", "macro-button");
-	ui.record_window_button->setProperty("group", "macro-button");
-	ui.add_button->setProperty("group", "macro-button");
-	ui.edit_button->setProperty("group", "macro-button");
-	ui.export_button->setProperty("group", "macro-button");
-	ui.import_button->setProperty("group", "macro-button");
-	ui.reload_button->setProperty("group", "macro-button");
-	ui.add_group_button->setProperty("group", "macro-button");
-	ui.delete_group_button->setProperty("group", "macro-button");
-	ui.delete_button->setProperty("group", "macro-button");
+	style_set_group(ui.record_button, "macro-button");
+	style_set_group(ui.record_window_button, "macro-button");
+	style_set_group(ui.add_button, "macro-button");
+	style_set_group(ui.edit_button, "macro-button");
+	style_set_group(ui.export_button, "macro-button");
+	style_set_group(ui.import_button, "macro-button");
+	style_set_group(ui.reload_button, "macro-button");
+	style_set_group(ui.add_group_button, "macro-button");
+	style_set_group(ui.delete_group_button, "macro-button");
+	style_set_group(ui.delete_button, "macro-button");
+}
+void MacroUi::LoadLanguage()
+{
+	std::call_once(lang_once, [this] {
+		lang_save_t(ui.record_button);
+		lang_save_t(ui.record_window_button);
+		lang_save_t(ui.add_button);
+		lang_save_t(ui.edit_button);
+		lang_save_t(ui.export_button);
+		lang_save_t(ui.import_button);
+		lang_save_t(ui.reload_button);
+		lang_save_t(ui.add_group_button);
+		lang_save_t(ui.delete_group_button);
+		lang_save_t(ui.delete_button);
+	});
+	lang_load_t(ui.record_button);
+	lang_load_t(ui.record_window_button);
+	lang_load_t(ui.add_button);
+	lang_load_t(ui.edit_button);
+	lang_load_t(ui.export_button);
+	lang_load_t(ui.import_button);
+	lang_load_t(ui.reload_button);
+	lang_load_t(ui.add_group_button);
+	lang_load_t(ui.delete_group_button);
+	lang_load_t(ui.delete_button);
+	TableUpdate();
 }
 
 void MacroUi::ResetWidget()
@@ -263,7 +289,7 @@ void MacroUi::TableUpdate()
 		table->setColumnCount(1);
 		table->setRowCount(mg.macros.size());
 		table->setMinimumWidth(ui.macroGroup_table->width());
-		table->setHorizontalHeaderItem(0, new QTableWidgetItem(mg.name));
+		table->setHorizontalHeaderItem(0, new QTableWidgetItem(mg.base ? lang_trans("默认分组") : mg.name));
 		table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeMode::Stretch);
 		// group move
 		table->horizontalHeader()->setAcceptDrops(true);
@@ -286,9 +312,9 @@ void MacroUi::TableUpdate()
 			Macro& m = mg.macros[mPos];
 			table->setItem(mPos, 0, new QTableWidgetItem(m.name));
 			table->item(mPos, 0)->setTextAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-			table->item(mPos, 0)->setData(static_cast<int>(DataRole::type), table_macros);
-			table->item(mPos, 0)->setData(static_cast<int>(DataRole::group), mgPos);
-			table->item(mPos, 0)->setData(static_cast<int>(DataRole::macro), mPos);
+			table->item(mPos, 0)->setData(DataRole::type, table_macros);
+			table->item(mPos, 0)->setData(DataRole::group, mgPos);
+			table->item(mPos, 0)->setData(DataRole::macro, mPos);
 		}
 		ui.macroGroup_table->setFold(table, Qi::group.fold[mg.name]);
 	}
@@ -306,7 +332,7 @@ void MacroUi::RecStart(bool wnd)
 		wndInfo = QiFn::WindowSelection();
 		if (!wndInfo.wnd)
 		{
-			Qi::popText->Popup(2000, "窗口已失效");
+			Qi::popText->Popup(2000, lang_trans("窗口已失效"));
 			return;
 		}
 	}
@@ -316,7 +342,7 @@ void MacroUi::RecStart(bool wnd)
 		Macro macro = rw.Start();
 		macro.groupName = currentGroup->name;
 		macro.groupBase = currentGroup->base;
-		macro.name = currentGroup->makeName("窗口录制");
+		macro.name = currentGroup->makeName(lang_trans("窗口录制"));
 		macro.storageType = Qi::set.save_type;
 		if (macro.acRun)
 		{
@@ -330,7 +356,7 @@ void MacroUi::RecStart(bool wnd)
 		Macro macro = rw.Start();
 		macro.groupName = currentGroup->name;
 		macro.groupBase = currentGroup->base;
-		macro.name = currentGroup->makeName("录制");
+		macro.name = currentGroup->makeName(lang_trans("录制"));
 		macro.storageType = Qi::set.save_type;
 		if (macro.acRun)
 		{
@@ -387,7 +413,7 @@ void MacroUi::customEvent(QEvent* e)
 		edit = currentMacros.front();
 		Qi::widget.editMacro = *edit;
 		Qi::widget.edit = new EditUi(&Qi::widget.editMacro);
-		Qi::widget.dialogActive = Qi::debug = true;
+		Qi::widget.dialogActive = true;
 		Qi::widget.main->hide();
 		Qi::widget.main->setDisabled(true);
 		Qi::widget.edit->show();
@@ -410,7 +436,7 @@ void MacroUi::customEvent(QEvent* e)
 	{
 		Qi::widget.main->setDisabled(false);
 		Qi::widget.main->show();
-		Qi::widget.dialogActive = Qi::debug = false;
+		Qi::widget.dialogActive = false;
 		if (Qi::widget.edit) delete Qi::widget.edit;
 		Qi::widget.edit = nullptr;
 		*edit = std::move(Qi::widget.editMacro);
@@ -423,12 +449,16 @@ void MacroUi::customEvent(QEvent* e)
 	{
 		Qi::widget.main->setDisabled(false);
 		Qi::widget.main->show();
-		Qi::widget.dialogActive = Qi::debug = false;
+		Qi::widget.dialogActive = false;
 		if (Qi::widget.edit) delete Qi::widget.edit;
 		Qi::widget.edit = nullptr;
 		Qi::popText->Hide();
 		ResetWidget();
 		DisableWidget();
+	}
+	else if (e->type() == static_cast<int>(QiEvent::lang_reload))
+	{
+		LoadLanguage();
 	}
 }
 bool MacroUi::eventFilter(QObject* sender, QEvent* event)
@@ -485,7 +515,7 @@ bool MacroUi::eventFilter(QObject* sender, QEvent* event)
 			model.dropMimeData(dragEnter->mimeData(), Qt::CopyAction, 0, 0, QModelIndex());
 			if (model.rowCount() < 1) return QWidget::eventFilter(sender, event);
 
-			if (model.item(0)->data(static_cast<int>(DataRole::type)).toInt() == table_macros && model.item(0)->data(static_cast<int>(DataRole::group)).toInt() != tableIndex)
+			if (model.item(0)->data(DataRole::type).toInt() == table_macros && model.item(0)->data(DataRole::group).toInt() != tableIndex)
 			{
 				dragEnter->acceptProposedAction();
 			}
@@ -520,8 +550,8 @@ bool MacroUi::eventFilter(QObject* sender, QEvent* event)
 			for (size_t i = 0; i < model.rowCount(); i++)
 			{
 				QStandardItem* item = model.item(i);
-				const int groupIndex = item->data(static_cast<int>(DataRole::group)).toInt();
-				const int macroIndex = item->data(static_cast<int>(DataRole::macro)).toInt();
+				const int groupIndex = item->data(DataRole::group).toInt();
+				const int macroIndex = item->data(DataRole::macro).toInt();
 				if (groupIndex >= groups->size() || tableIndex == groupIndex) break;
 
 				if (selected_groupIndex == -1) selected_groupIndex = groupIndex;

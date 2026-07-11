@@ -9,15 +9,15 @@ class AboutUi : public QWidget
 {
 	Q_OBJECT;
 	Ui::AboutUiClass ui;
+	std::once_flag lang_once;
 #ifdef Q_UPDATE
 	std::unique_ptr<QiUpdate> update;
 #endif
-	QString version_current;
 	std::string version, content;
 
 public:
 	AboutUi(QWidget* parent = nullptr);
-	QString Version() const;
+	void LoadLanguage();
 
 private:
 	bool eventFilter(QObject*, QEvent*);

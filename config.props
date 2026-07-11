@@ -18,6 +18,6 @@
 			如果没有配置OpenSSL可以关闭Q_UPDATE
 			如果出现Qt和WinRT版本冲突可以关闭Q_WINRT
 		-->
-			<QiPreprocessorDefinitions>Q_UPDATE; Q_OSC; Q_KEYEDIT_PAD_ENABLED;</QiPreprocessorDefinitions>
+			<QiPreprocessorDefinitions>Q_UPDATE; Q_OSC; Q_KEYEDIT_PAD_ENABLED; Q_WINRT; Q_GRAPHICS_CAPTURE;</QiPreprocessorDefinitions>
 	</PropertyGroup>
 </Project>

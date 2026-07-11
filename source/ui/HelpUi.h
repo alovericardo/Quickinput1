@@ -1,14 +1,14 @@
 ﻿#pragma once
 #include <src/inc_header.h>
-#include "ui_MoreUi.h"
-class MoreUi : public QDialogFrameless
+#include "ui_HelpUi.h"
+class HelpUi : public QDialogFrameless
 {
 	Q_OBJECT;
-	using This = MoreUi;
-	Ui::MoreUiClass ui;
+	using This = HelpUi;
+	Ui::HelpUiClass ui;
 
 public:
-	MoreUi();
+	HelpUi();
 
 private:
 	void StyleGroup();

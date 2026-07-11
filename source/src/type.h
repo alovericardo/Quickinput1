@@ -12,13 +12,6 @@ enum class InterpreterResult
 	r_break,
 	r_top
 };
-enum class DataRole
-{
-	id = Qt::UserRole,
-	type,
-	group,
-	macro
-};
 enum class QiEvent
 {
 	wid_close = QEvent::User + 1,
@@ -32,7 +25,9 @@ enum class QiEvent
 	edt_debug_pause,
 	edt_varop_stop,
 	var_reload,
-	key_reset
+	key_reset,
+	lang_notify,
+	lang_reload
 };
 
 struct MsgViewInfo
@@ -90,6 +85,7 @@ struct FuncData
 };
 struct SettingsData
 {
+	QString lang;
 	QString ocr_current;
 	int ocr_thread = 0;
 	int save_type = Macro::StorageType::JSON;
@@ -97,6 +93,9 @@ struct SettingsData
 	short key1 = 0;
 	short key2 = 0;
 	short recKey = 0;
+#ifdef Q_DRIVER
+	bool driver = false;
+#endif
 	bool recTrack = false;
 	bool defOn = false;
 	bool showTips = false;
@@ -126,8 +125,10 @@ struct Widget
 	QWidget* trigger = nullptr;
 	QWidget* func = nullptr;
 	QWidget* settings = nullptr;
+	QWidget* about = nullptr;
 	QWidget* record = nullptr;
 	QWidget* edit = nullptr;
+	QWidget* help = nullptr;
 	QWidget* varView = nullptr;
 	QWidget* msgView = nullptr;
 	Macro editMacro;
@@ -137,71 +138,91 @@ struct Widget
 	}
 	void recordStart() const
 	{
-		QApplication::postEvent(record, new QEvent(static_cast<QEvent::Type>(QiEvent::rec_start)));
+		if (record) QApplication::postEvent(record, new QEvent(static_cast<QEvent::Type>(QiEvent::rec_start)));
 	}
 	void recordStop() const
 	{
-		QApplication::postEvent(record, new QEvent(static_cast<QEvent::Type>(QiEvent::rec_stop)));
+		if (record) QApplication::postEvent(record, new QEvent(static_cast<QEvent::Type>(QiEvent::rec_stop)));
 	}
 	void recordClose() const
 	{
-		QApplication::postEvent(record, new QEvent(static_cast<QEvent::Type>(QiEvent::rec_close)));
+		if (record) QApplication::postEvent(record, new QEvent(static_cast<QEvent::Type>(QiEvent::rec_close)));
 	}
 	void macroLoad() const
 	{
-		QApplication::postEvent(macro, new QEvent(static_cast<QEvent::Type>(QiEvent::mac_load)));
+		if (macro) QApplication::postEvent(macro, new QEvent(static_cast<QEvent::Type>(QiEvent::mac_load)));
 	}
 	void macroEdit() const
 	{
-		QApplication::postEvent(macro, new QEvent(static_cast<QEvent::Type>(QiEvent::mac_edit_enter)));
+		if (macro) QApplication::postEvent(macro, new QEvent(static_cast<QEvent::Type>(QiEvent::mac_edit_enter)));
 	}
 	void macroEdited(bool save = true) const
 	{
-		QApplication::postEvent(macro, new QEvent(static_cast<QEvent::Type>((save ? QiEvent::mac_edit_exit : QiEvent::mac_edit_exit_d))));
+		if (macro) QApplication::postEvent(macro, new QEvent(static_cast<QEvent::Type>((save ? QiEvent::mac_edit_exit : QiEvent::mac_edit_exit_d))));
 	}
 	void editClose() const
 	{
-		QApplication::postEvent(edit, new QEvent(static_cast<QEvent::Type>(QiEvent::wid_close)));
+		if (edit) QApplication::postEvent(edit, new QEvent(static_cast<QEvent::Type>(QiEvent::wid_close)));
 	}
 	void editDebugPause() const
 	{
-		QApplication::postEvent(edit, new QEvent(static_cast<QEvent::Type>(QiEvent::edt_debug_pause)));
+		if (edit) QApplication::postEvent(edit, new QEvent(static_cast<QEvent::Type>(QiEvent::edt_debug_pause)));
 	}
 	void editVaropStop() const
 	{
-		QApplication::postEvent(edit, new QEvent(static_cast<QEvent::Type>(QiEvent::edt_varop_stop)));
+		if (edit) QApplication::postEvent(edit, new QEvent(static_cast<QEvent::Type>(QiEvent::edt_varop_stop)));
 	}
 	void varViewReload() const
 	{
-		if (!varView->isHidden()) QApplication::postEvent(varView, new QEvent(static_cast<QEvent::Type>(QiEvent::var_reload)));
+		if (varView && !varView->isHidden()) QApplication::postEvent(varView, new QEvent(static_cast<QEvent::Type>(QiEvent::var_reload)));
 	}
 	void msgViewSet(const QString& text) const
 	{
-		MsgViewInfo info; info.text = text;
-		QApplication::postEvent(msgView, new MsgViewEvent(MsgViewEvent::Type::setText, info));
+		if (msgView)
+		{
+			MsgViewInfo info;
+			info.text = text;
+			QApplication::postEvent(msgView, new MsgViewEvent(MsgViewEvent::Type::setText, info));
+		}
 	}
 	void msgViewAdd(const MsgViewInfo& info) const
 	{
-		QApplication::postEvent(msgView, new MsgViewEvent(MsgViewEvent::Type::newLine, info));
+		if (msgView) QApplication::postEvent(msgView, new MsgViewEvent(MsgViewEvent::Type::newLine, info));
 	}
 	void msgViewClear() const
 	{
-		QApplication::postEvent(msgView, new MsgViewEvent(MsgViewEvent::Type::clear));
+		if (msgView) QApplication::postEvent(msgView, new MsgViewEvent(MsgViewEvent::Type::clear));
 	}
 	void msgViewShow() const
 	{
-		QApplication::postEvent(msgView, new MsgViewEvent(MsgViewEvent::Type::show));
+		if (msgView) QApplication::postEvent(msgView, new MsgViewEvent(MsgViewEvent::Type::show));
 	}
 	void msgViewHide() const
 	{
-		QApplication::postEvent(msgView, new MsgViewEvent(MsgViewEvent::Type::hide));
+		if (msgView) QApplication::postEvent(msgView, new MsgViewEvent(MsgViewEvent::Type::hide));
 	}
 	void keyEditReload() const
 	{
-		QApplication::postEvent(macro, new QEvent(static_cast<QEvent::Type>(QiEvent::key_reset)));
-		QApplication::postEvent(trigger, new QEvent(static_cast<QEvent::Type>(QiEvent::key_reset)));
-		QApplication::postEvent(func, new QEvent(static_cast<QEvent::Type>(QiEvent::key_reset)));
-		QApplication::postEvent(settings, new QEvent(static_cast<QEvent::Type>(QiEvent::key_reset)));
+		if (macro) QApplication::postEvent(macro, new QEvent(static_cast<QEvent::Type>(QiEvent::key_reset)));
+		if (trigger) QApplication::postEvent(trigger, new QEvent(static_cast<QEvent::Type>(QiEvent::key_reset)));
+		if (func) QApplication::postEvent(func, new QEvent(static_cast<QEvent::Type>(QiEvent::key_reset)));
+		if (settings) QApplication::postEvent(settings, new QEvent(static_cast<QEvent::Type>(QiEvent::key_reset)));
+	}
+	void langNotify() const
+	{
+		if (main) QApplication::postEvent(main, new QEvent(static_cast<QEvent::Type>(QiEvent::lang_notify)));
+	}
+	void langReload() const
+	{
+		if (main) QApplication::postEvent(main, new QEvent(static_cast<QEvent::Type>(QiEvent::lang_reload)));
+		if (macro) QApplication::postEvent(macro, new QEvent(static_cast<QEvent::Type>(QiEvent::lang_reload)));
+		if (trigger) QApplication::postEvent(trigger, new QEvent(static_cast<QEvent::Type>(QiEvent::lang_reload)));
+		if (func) QApplication::postEvent(func, new QEvent(static_cast<QEvent::Type>(QiEvent::lang_reload)));
+		if (settings) QApplication::postEvent(settings, new QEvent(static_cast<QEvent::Type>(QiEvent::lang_reload)));
+		if (about) QApplication::postEvent(about, new QEvent(static_cast<QEvent::Type>(QiEvent::lang_reload)));
+		if (help) QApplication::postEvent(help, new QEvent(static_cast<QEvent::Type>(QiEvent::lang_reload)));
+		if (varView) QApplication::postEvent(varView, new QEvent(static_cast<QEvent::Type>(QiEvent::lang_reload)));
+		if (msgView) QApplication::postEvent(msgView, new QEvent(static_cast<QEvent::Type>(QiEvent::lang_reload)));
 	}
 };
 
@@ -211,6 +232,9 @@ namespace Qi
 	inline QString about;
 	inline size_t ocr_ver = 0;
 	inline QiOcrModule ocr;
+#ifdef Q_DRIVER
+	inline QiDriverModule driver;
+#endif
 	// for setStyle
 	inline QApplication* application = nullptr;
 	inline QiUi::QuickInputUi ui;

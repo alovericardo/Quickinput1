@@ -10,6 +10,8 @@
 #include <stdexcept>
 #include <algorithm>
 #include <regex>
+#include <src/tools/string.h>
+using namespace QiTools;
 
 class QiVar
 {

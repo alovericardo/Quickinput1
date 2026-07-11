@@ -42,6 +42,7 @@ QJsonObject Macro::toJson() const
 	json.insert("posScaleY", (double)posScaleY);
 	json.insert("actions", acRun.toJson());
 	json.insert("actionsEnding", acEnd.toJson());
+	json.insert("actionsEntry", acEnt.toJson());
 	return json;
 }
 void Macro::fromJson(const QJsonObject& json)
@@ -102,6 +103,7 @@ void Macro::fromJson(const QJsonObject& json)
 
 	acRun.fromJson(json.value("actions").toArray());
 	acEnd.fromJson(json.value("actionsEnding").toArray());
+	acEnt.fromJson(json.value("actionsEntry").toArray());
 }
 
 typepack::object Macro::toPack() const
@@ -137,6 +139,7 @@ typepack::object Macro::toPack() const
 	pack.set("posScaleY", (double)posScaleY);
 	pack.set("actions", acRun.toPack());
 	pack.set("actionsEnding", acEnd.toPack());
+	pack.set("actionsEntry", acEnt.toPack());
 	return pack;
 }
 void Macro::fromPack(const typepack::object& pack)
@@ -171,23 +174,24 @@ void Macro::fromPack(const typepack::object& pack)
 	timerStart = QiRange::Restricted((int)pack.get("timerStart").toInt(), Macro::range_timer);
 	timerEnd = QiRange::Restricted((int)pack.get("timerEnd").toInt(), Macro::range_timer);
 
-	speed = pack.get("speed").toNumber();
+	speed = pack.get("speed").toFloat64();
 	if (speed == 0) speed = 1.0f;
 	else speed = QiRange::Restricted(speed, Macro::range_speed);
 
-	moveScaleX = pack.get("moveScaleX").toNumber();
+	moveScaleX = pack.get("moveScaleX").toFloat64();
 	if (moveScaleX == 0) moveScaleX = 1.0f;
 	else moveScaleX = QiRange::Restricted(moveScaleX, Macro::range_moveScale);
 
-	moveScaleY = pack.get("moveScaleY").toNumber();
+	moveScaleY = pack.get("moveScaleY").toFloat64();
 	if (moveScaleY == 0) moveScaleY = 1.0f;
 	else moveScaleY = QiRange::Restricted(moveScaleY, Macro::range_moveScale);
 
-	posScaleX = QiRange::Restricted(pack.get("posScaleX").toNumber(), Macro::range_posScale);
-	posScaleY = QiRange::Restricted(pack.get("posScaleY").toNumber(), Macro::range_posScale);
+	posScaleX = QiRange::Restricted(pack.get("posScaleX").toFloat64(), Macro::range_posScale);
+	posScaleY = QiRange::Restricted(pack.get("posScaleY").toFloat64(), Macro::range_posScale);
 
 	acRun.fromPack(pack.get("actions").toArray());
 	acEnd.fromPack(pack.get("actionsEnding").toArray());
+	acEnt.fromPack(pack.get("actionsEntry").toArray());
 }
 
 #if !defined(Q_ENCRYPT) || defined(Q_ENCRYPT_CVT)
@@ -196,13 +200,13 @@ bool LoadJsonMacro(Macro& macro, const QString& path, const QString& name)
 	QByteArray text;
 	if (!File::LoadText(path, text))
 	{
-		MsgBox::Error(reinterpret_cast<const wchar_t*>(name.utf16()), L"加载宏失败");
+		MsgBox::Error(reinterpret_cast<const wchar_t*>(name.utf16()), lang_trans("加载宏失败").toStdWString());
 		return false;
 	}
 	QJsonDocument json(QJsonDocument::fromJson(text));
 	if (!json.isObject())
 	{
-		MsgBox::Error(reinterpret_cast<const wchar_t*>(name.utf16()), L"宏数据错误");
+		MsgBox::Error(reinterpret_cast<const wchar_t*>(name.utf16()), lang_trans("宏数据错误").toStdWString());
 		return false;
 	}
 	macro.storageType = Macro::StorageType::JSON;
@@ -215,13 +219,13 @@ bool LoadQimMacro(Macro& macro, const QString& path, const QString& name)
 	auto data = File::FileReadAll(path.toStdWString());
 	if (data.empty())
 	{
-		MsgBox::Error(reinterpret_cast<const wchar_t*>(name.utf16()), L"加载宏失败");
+		MsgBox::Error(reinterpret_cast<const wchar_t*>(name.utf16()), lang_trans("加载宏失败").toStdWString());
 		return false;
 	}
 	typepack::object pack = typepack::object::fromBinary(data);
 	if (pack.empty())
 	{
-		MsgBox::Error(reinterpret_cast<const wchar_t*>(name.utf16()), L"宏数据错误");
+		MsgBox::Error(reinterpret_cast<const wchar_t*>(name.utf16()), lang_trans("宏数据错误").toStdWString());
 		return false;
 	}
 	macro.storageType = Macro::StorageType::QIM;
@@ -296,7 +300,7 @@ void Macro::loadAll()
 					const QString old_path = macro.makePath();
 					macro.name = group->makeName(macro.name);
 					const QString new_path = macro.makePath();
-					if (old_path != new_path && MoveFileW(reinterpret_cast<const wchar_t*>(old_path.utf16()), reinterpret_cast<const wchar_t*>(new_path.utf16())) == FALSE) MsgBox::Error(file.fileName().toStdWString(), L"重命名文件失败");
+					if (old_path != new_path && MoveFileW(reinterpret_cast<const wchar_t*>(old_path.utf16()), reinterpret_cast<const wchar_t*>(new_path.utf16())) == FALSE) MsgBox::Error(file.fileName().toStdWString(), lang_trans("重命名文件失败").toStdWString());
 #if defined(Q_ENCRYPT) && defined(Q_ENCRYPT_CVT)
 					macro.remove();
 					macro.save();

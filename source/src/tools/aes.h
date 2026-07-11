@@ -7,9 +7,19 @@
 #include <cstring>
 #include <iostream>
 #include <iomanip>
+#include <random>
 
 class AES
 {
+public:
+	enum KEY
+	{
+		AES_128,
+		AES_192,
+		AES_256
+	};
+
+private:
 	enum class MODE
 	{
 		ECB,
@@ -25,7 +35,7 @@ class AES
 	static const int NR_192 = 12;
 	static const int NR_256 = 14;
 
-	inline static const unsigned char RCON[11] = { 0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36 };
+	inline static const unsigned char RCON[11] = { 0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36 };
 	inline static const unsigned char SBOX[256] = {
 		0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
 		0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
@@ -63,25 +73,32 @@ class AES
 		0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d
 	};
 
-	static void checkKeySize(const std::vector<unsigned char>& key)
+	static constexpr void checkKeySize(const size_t size)
 	{
-		if (key.size() != 16 && key.size() != 24 && key.size() != 32) throw std::invalid_argument("Invalid key size. Key must be 16, 24, or 32 bytes.");
+		if (size != 16 && size != 24 && size != 32) throw std::invalid_argument("Invalid key size. Key must be 16, 24, or 32 bytes.");
 	}
-	static void checkDataSize(const std::vector<unsigned char>& data, MODE mode)
+	static constexpr void checkDataSize(const size_t size, MODE mode)
 	{
 		if (mode == MODE::ECB || mode == MODE::CBC)
 		{
-			if (data.size() % BLOCK_SIZE != 0) throw std::invalid_argument("Data length must be multiple of 16 bytes for ECB or CBC mode.");
+			if (size % BLOCK_SIZE != 0) throw std::invalid_argument("Data length must be multiple of 16 bytes for ECB or CBC mode.");
 		}
 	}
-	static int getKeyLengthType(size_t key_len)
+	static constexpr int getKeyLengthType(size_t key_len)
 	{
 		if (key_len == 16) return AES_128;
 		if (key_len == 24) return AES_192;
 		if (key_len == 32) return AES_256;
 		throw std::invalid_argument("Invalid key length");
 	}
-	static int getNr(int key_type)
+	static constexpr int getKeyTypeLength(KEY key_type)
+	{
+		if (key_type == AES_128) return 16;
+		if (key_type == AES_192) return 24;
+		if (key_type == AES_256) return 32;
+		throw std::invalid_argument("Invalid key type");
+	}
+	static constexpr int getNr(int key_type)
 	{
 		switch (key_type)
 		{
@@ -91,7 +108,7 @@ class AES
 		default: throw std::invalid_argument("Invalid key type");
 		}
 	}
-	static int getNk(int key_type)
+	static constexpr int getNk(int key_type)
 	{
 		switch (key_type) {
 		case AES_128: return NK_128;
@@ -100,11 +117,11 @@ class AES
 		default: throw std::invalid_argument("Invalid key type");
 		}
 	}
-	static void subBytes(unsigned char state[4][4])
+	static constexpr void subBytes(unsigned char state[4][4])
 	{
 		for (int i = 0; i < 4; i++) for (int j = 0; j < 4; j++) state[i][j] = SBOX[state[i][j]];
 	}
-	static void invSubBytes(unsigned char state[4][4])
+	static constexpr void invSubBytes(unsigned char state[4][4])
 	{
 		for (int i = 0; i < 4; i++) for (int j = 0; j < 4; j++) state[i][j] = INV_SBOX[state[i][j]];
 	}
@@ -189,7 +206,7 @@ class AES
 			state[3][i] = temp[3];
 		}
 	}
-	static void addRoundKey(unsigned char state[4][4], const unsigned char* roundKey)
+	static constexpr void addRoundKey(unsigned char state[4][4], const unsigned char* roundKey)
 	{
 		for (int i = 0; i < 4; i++) for (int j = 0; j < 4; j++) state[j][i] ^= roundKey[i * 4 + j];
 	}
@@ -249,186 +266,228 @@ class AES
 		addRoundKey(state, roundKeys);
 		for (int i = 0; i < 4; i++) for (int j = 0; j < 4; j++) out[i * 4 + j] = state[j][i];
 	}
-	static void xorBlocks(const unsigned char* a, const unsigned char* b, unsigned char* result)
+	static constexpr void xorBlocks(const unsigned char* a, const unsigned char* b, unsigned char* result)
 	{
 		for (int i = 0; i < BLOCK_SIZE; i++) result[i] = a[i] ^ b[i];
 	}
 
-	static std::vector<unsigned char> pkcs7_pad(const std::vector<unsigned char>& data, size_t block_size = BLOCK_SIZE) {
+	static std::vector<unsigned char> pkcs7_pad(const void* data, size_t data_len, size_t block_size = BLOCK_SIZE)
+	{
 		if (block_size == 0 || block_size > 255) throw std::invalid_argument("Invalid block size for PKCS#7 padding");
-		size_t padding_len = block_size - (data.size() % block_size);
-		std::vector<unsigned char> padded = data;
+		size_t padding_len = block_size - (data_len % block_size);
+		std::vector<unsigned char> padded(reinterpret_cast<const unsigned char*>(data), reinterpret_cast<const unsigned char*>(data) + data_len);
 		padded.insert(padded.end(), padding_len, static_cast<unsigned char>(padding_len));
 		return padded;
 	}
+	static std::vector<unsigned char> pkcs7_pad(const std::vector<unsigned char>& data, size_t block_size = BLOCK_SIZE) { return pkcs7_pad(data.data(), data.size(), block_size); }
 
-	static std::vector<unsigned char> pkcs7_unpad(const std::vector<unsigned char>& padded_data, size_t block_size = BLOCK_SIZE) {
+	static std::vector<unsigned char> pkcs7_unpad(const void* data, size_t data_len, size_t block_size = BLOCK_SIZE)
+	{
+		std::vector<unsigned char> padded_data(reinterpret_cast<const unsigned char*>(data), reinterpret_cast<const unsigned char*>(data) + data_len);
 		if (padded_data.empty()) throw std::invalid_argument("Empty data cannot be unpadded");
 		size_t padding_len = padded_data.back();
 		if (padding_len == 0 || padding_len > block_size || padding_len > padded_data.size()) throw std::invalid_argument("Invalid PKCS#7 padding");
 		for (size_t i = padded_data.size() - padding_len; i < padded_data.size(); i++) if (padded_data[i] != padding_len) throw std::invalid_argument("Invalid PKCS#7 padding");
 		return std::vector<unsigned char>(padded_data.begin(), padded_data.end() - padding_len);
 	}
+	static std::vector<unsigned char> pkcs7_unpad(const std::vector<unsigned char>& data, size_t block_size = BLOCK_SIZE) { return pkcs7_unpad(data.data(), data.size()); }
 
 public:
-	enum
+	static std::vector<unsigned char> make_iv(size_t len = 16)
 	{
-		AES_128,
-		AES_192,
-		AES_256
-	};
-
-	static std::vector<unsigned char> make_iv(size_t len = 16) {
 		std::vector<unsigned char> iv;
 		iv.resize(len);
-		srand(time(nullptr) + clock());
-		for (size_t i = 0; i < len; i++) iv[i] = static_cast<unsigned char>(rand() % 256);
+		std::random_device rd;
+		for (size_t i = 0; i < len; i++) iv[i] = static_cast<unsigned char>(rd() % 256);
 		return iv;
 	}
+	static std::vector<unsigned char> fill_key(const unsigned char* key, size_t size, KEY keyType)
+	{
+		std::vector<unsigned char> result(getKeyTypeLength(keyType), 0);
+		for (size_t i = 0; i < size && i < result.size(); i++) result[i] = key[i];
+		return result;
+	}
+	static std::vector<unsigned char> fill_key(const std::vector<unsigned char>& key, KEY keyType)
+	{
+		std::vector<unsigned char> result(getKeyTypeLength(keyType), 0);
+		for (size_t i = 0; i < key.size() && i < result.size(); i++) result[i] = key[i];
+		return result;
+	}
 
-	static std::vector<unsigned char> en_ecb(const std::vector<unsigned char>& data, const std::vector<unsigned char>& key) {
-		checkKeySize(key);
-		checkDataSize(data, MODE::ECB);
+	static std::vector<unsigned char> en_ecb(const void* data, size_t data_len, const unsigned char* key, size_t key_len)
+	{
+		checkKeySize(key_len);
+		checkDataSize(data_len, MODE::ECB);
 
-		int key_type = getKeyLengthType(key.size());
+		int key_type = getKeyLengthType(key_len);
 		int nr = getNr(key_type);
 
 		std::vector<unsigned char> roundKeys(16 * (nr + 1));
-		keyExpansion(key.data(), roundKeys.data(), key_type);
+		keyExpansion(key, roundKeys.data(), key_type);
 
-		std::vector<unsigned char> result(data.size());
-		for (size_t i = 0; i < data.size(); i += BLOCK_SIZE) encryptBlock(data.data() + i, result.data() + i, roundKeys.data(), nr);
+		std::vector<unsigned char> result(data_len);
+		for (size_t i = 0; i < data_len; i += BLOCK_SIZE) encryptBlock(reinterpret_cast<const unsigned char*>(data) + i, result.data() + i, roundKeys.data(), nr);
 
 		return result;
 	}
-	static std::vector<unsigned char> en_ecb(const unsigned char* data, size_t data_len, const unsigned char* key, size_t key_len) {
-		return en_ecb(std::vector<unsigned char>(data, data + data_len), std::vector<unsigned char>(key, key + key_len));
+	static std::vector<unsigned char> en_ecb(const std::vector<unsigned char>& data, const std::vector<unsigned char>& key) { return en_ecb(data.data(), data.size(), key.data(), key.size()); }
+	static std::vector<unsigned char> en_ecb_pkcs7(const void* data, size_t data_len, const unsigned char* key, size_t key_len)
+	{
+		auto padded = pkcs7_pad(data, data_len);
+		return en_ecb(padded.data(), padded.size(), key, key_len);
 	}
-	static std::vector<unsigned char> en_ecb_pkcs7(const std::vector<unsigned char>& data, const std::vector<unsigned char>& key) {
+	static std::vector<unsigned char> en_ecb_pkcs7(const std::vector<unsigned char>& data, const std::vector<unsigned char>& key)
+	{
 		auto padded = pkcs7_pad(data);
 		return en_ecb(padded, key);
 	}
-	static std::vector<unsigned char> de_ecb(const std::vector<unsigned char>& data, const std::vector<unsigned char>& key) {
-		checkKeySize(key);
-		checkDataSize(data, MODE::ECB);
 
-		int key_type = getKeyLengthType(key.size());
+	static std::vector<unsigned char> de_ecb(const void* data, size_t data_len, const unsigned char* key, size_t key_len)
+	{
+		checkKeySize(key_len);
+		checkDataSize(data_len, MODE::ECB);
+
+		int key_type = getKeyLengthType(key_len);
 		int nr = getNr(key_type);
 
 		std::vector<unsigned char> roundKeys(16 * (nr + 1));
-		keyExpansion(key.data(), roundKeys.data(), key_type);
+		keyExpansion(key, roundKeys.data(), key_type);
 
-		std::vector<unsigned char> result(data.size());
-		for (size_t i = 0; i < data.size(); i += BLOCK_SIZE) decryptBlock(data.data() + i, result.data() + i, roundKeys.data(), nr);
+		std::vector<unsigned char> result(data_len);
+		for (size_t i = 0; i < data_len; i += BLOCK_SIZE) decryptBlock(reinterpret_cast<const unsigned char*>(data) + i, result.data() + i, roundKeys.data(), nr);
 
 		return result;
 	}
-	static std::vector<unsigned char> de_ecb(const unsigned char* data, size_t data_len, const unsigned char* key, size_t key_len) {
-		return de_ecb(std::vector<unsigned char>(data, data + data_len), std::vector<unsigned char>(key, key + key_len));
+	static std::vector<unsigned char> de_ecb(const std::vector<unsigned char>& data, const std::vector<unsigned char>& key) { return de_ecb(data.data(), data.size(), key.data(), key.size()); }
+	static std::vector<unsigned char> de_ecb_pkcs7(const void* data, size_t data_len, const unsigned char* key, size_t key_len)
+	{
+		auto decrypted = de_ecb(data, data_len, key, key_len);
+		return pkcs7_unpad(decrypted);
 	}
-	static std::vector<unsigned char> de_ecb_pkcs7(const std::vector<unsigned char>& ciphertext, const std::vector<unsigned char>& key) {
-		auto decrypted = de_ecb(ciphertext, key);
+	static std::vector<unsigned char> de_ecb_pkcs7(const std::vector<unsigned char>& data, const std::vector<unsigned char>& key)
+	{
+		auto decrypted = de_ecb(data, key);
 		return pkcs7_unpad(decrypted);
 	}
 
-	static std::vector<unsigned char> en_cbc(const std::vector<unsigned char>& data, const std::vector<unsigned char>& key, const std::vector<unsigned char>& iv = {}) {
-		checkKeySize(key);
-		checkDataSize(data, MODE::CBC);
 
-		int key_type = getKeyLengthType(key.size());
+	static std::vector<unsigned char> en_cbc(const void* data, size_t data_len, const unsigned char* key, size_t key_len, const unsigned char* iv = nullptr, size_t iv_len = 0)
+	{
+		checkKeySize(key_len);
+		checkDataSize(data_len, MODE::CBC);
+
+		int key_type = getKeyLengthType(key_len);
 		int nr = getNr(key_type);
 
 		std::vector<unsigned char> roundKeys(16 * (nr + 1));
-		keyExpansion(key.data(), roundKeys.data(), key_type);
+		keyExpansion(key, roundKeys.data(), key_type);
 
-		std::vector<unsigned char> iv_vec(iv);
+		std::vector<unsigned char> iv_vec;
+		if (iv && iv_len) iv_vec.assign(iv, iv + iv_len);
+
 		if (iv_vec.empty()) iv_vec.resize(BLOCK_SIZE, 0);
 		else if (iv_vec.size() < BLOCK_SIZE) iv_vec.resize(BLOCK_SIZE, 0);
 
-		std::vector<unsigned char> result(data.size());
+		std::vector<unsigned char> result(data_len);
 		unsigned char previous[BLOCK_SIZE];
 		unsigned char current[BLOCK_SIZE];
 
 		memcpy(previous, iv_vec.data(), BLOCK_SIZE);
 
-		for (size_t i = 0; i < data.size(); i += BLOCK_SIZE) {
-			xorBlocks(data.data() + i, previous, current);
+		for (size_t i = 0; i < data_len; i += BLOCK_SIZE) {
+			xorBlocks(reinterpret_cast<const unsigned char*>(data) + i, previous, current);
 			encryptBlock(current, result.data() + i, roundKeys.data(), nr);
 			memcpy(previous, result.data() + i, BLOCK_SIZE);
 		}
 
 		return result;
 	}
-	static std::vector<unsigned char> en_cbc(const unsigned char* data, size_t data_len, const unsigned char* key, size_t key_len, const unsigned char* iv = nullptr, size_t iv_len = 0) {
-		return en_cbc(std::vector<unsigned char>(data, data + data_len), std::vector<unsigned char>(key, key + key_len), iv ? std::vector<unsigned char>(iv, iv + iv_len) : std::vector<unsigned char>());
+	static std::vector<unsigned char> en_cbc(const std::vector<unsigned char>& data, const std::vector<unsigned char>& key, const std::vector<unsigned char>& iv = {}) { return en_cbc(data.data(), data.size(), key.data(), key.size(), iv.data(), iv.size()); }
+	static std::vector<unsigned char> en_cbc_pkcs7(const void* data, size_t data_len, const unsigned char* key, size_t key_len, const unsigned char* iv = nullptr, size_t iv_len = 0)
+	{
+		auto padded = pkcs7_pad(data, data_len);
+		return en_cbc(padded.data(), padded.size(), key, key_len, iv, iv_len);
 	}
-	static std::vector<unsigned char> en_cbc_pkcs7(const std::vector<unsigned char>& data, const std::vector<unsigned char>& key, const std::vector<unsigned char>& iv = {}) {
+	static std::vector<unsigned char> en_cbc_pkcs7(const std::vector<unsigned char>& data, const std::vector<unsigned char>& key, const std::vector<unsigned char>& iv = {})
+	{
 		auto padded = pkcs7_pad(data);
 		return en_cbc(padded, key, iv);
 	}
-	static std::vector<unsigned char> de_cbc(const std::vector<unsigned char>& data, const std::vector<unsigned char>& key, const std::vector<unsigned char>& iv = {}) {
-		checkKeySize(key);
-		checkDataSize(data, MODE::CBC);
 
-		int key_type = getKeyLengthType(key.size());
+	static std::vector<unsigned char> de_cbc(const void* data, size_t data_len, const unsigned char* key, size_t key_len, const unsigned char* iv = nullptr, size_t iv_len = 0)
+	{
+		checkKeySize(key_len);
+		checkDataSize(data_len, MODE::CBC);
+
+		int key_type = getKeyLengthType(key_len);
 		int nr = getNr(key_type);
 
 		std::vector<unsigned char> roundKeys(16 * (nr + 1));
-		keyExpansion(key.data(), roundKeys.data(), key_type);
+		keyExpansion(key, roundKeys.data(), key_type);
 
-		std::vector<unsigned char> iv_vec(iv);
+		std::vector<unsigned char> iv_vec;
+		if (iv && iv_len) iv_vec.assign(iv, iv + iv_len);
+
 		if (iv_vec.empty()) iv_vec.resize(BLOCK_SIZE, 0);
 		else if (iv_vec.size() < BLOCK_SIZE) iv_vec.resize(BLOCK_SIZE, 0);
 
-		std::vector<unsigned char> result(data.size());
+		std::vector<unsigned char> result(data_len);
 		unsigned char previous[BLOCK_SIZE];
 		unsigned char current[BLOCK_SIZE];
 
 		memcpy(previous, iv_vec.data(), BLOCK_SIZE);
 
-		for (size_t i = 0; i < data.size(); i += BLOCK_SIZE) {
-			decryptBlock(data.data() + i, current, roundKeys.data(), nr);
+		for (size_t i = 0; i < data_len; i += BLOCK_SIZE) {
+			decryptBlock(reinterpret_cast<const unsigned char*>(data) + i, current, roundKeys.data(), nr);
 			xorBlocks(current, previous, result.data() + i);
-			memcpy(previous, data.data() + i, BLOCK_SIZE);
+			memcpy(previous, reinterpret_cast<const unsigned char*>(data) + i, BLOCK_SIZE);
 		}
 
 		return result;
 	}
-	static std::vector<unsigned char> de_cbc(const unsigned char* data, size_t data_len, const unsigned char* key, size_t key_len, const unsigned char* iv = nullptr, size_t iv_len = 0) {
-		return de_cbc(std::vector<unsigned char>(data, data + data_len), std::vector<unsigned char>(key, key + key_len), iv ? std::vector<unsigned char>(iv, iv + iv_len) : std::vector<unsigned char>());
+	static std::vector<unsigned char> de_cbc(const std::vector<unsigned char>& data, const std::vector<unsigned char>& key, const std::vector<unsigned char>& iv = {}) { return de_cbc(data.data(), data.size(), key.data(), key.size(), iv.data(), iv.size()); }
+	static std::vector<unsigned char> de_cbc_pkcs7(const void* data, size_t data_len, const unsigned char* key, size_t key_len, const unsigned char* iv = nullptr, size_t iv_len = 0)
+	{
+		auto decrypted = de_cbc(data, data_len, key, key_len, iv, iv_len);
+		return pkcs7_unpad(decrypted);
 	}
-	static std::vector<unsigned char> de_cbc_pkcs7(const std::vector<unsigned char>& ciphertext, const std::vector<unsigned char>& key, const std::vector<unsigned char>& iv = {}) {
-		auto decrypted = de_cbc(ciphertext, key, iv);
+	static std::vector<unsigned char> de_cbc_pkcs7(const std::vector<unsigned char>& data, const std::vector<unsigned char>& key, const std::vector<unsigned char>& iv = {})
+	{
+		auto decrypted = de_cbc(data, key, iv);
 		return pkcs7_unpad(decrypted);
 	}
 
-	static std::vector<unsigned char> en_cfb(const std::vector<unsigned char>& data, const std::vector<unsigned char>& key, const std::vector<unsigned char>& iv = {}) {
-		checkKeySize(key);
 
-		int key_type = getKeyLengthType(key.size());
+	static std::vector<unsigned char> en_cfb(const void* data, size_t data_len, const unsigned char* key, size_t key_len, const unsigned char* iv = nullptr, size_t iv_len = 0)
+	{
+		checkKeySize(key_len);
+
+		int key_type = getKeyLengthType(key_len);
 		int nr = getNr(key_type);
 
 		std::vector<unsigned char> roundKeys(16 * (nr + 1));
-		keyExpansion(key.data(), roundKeys.data(), key_type);
+		keyExpansion(key, roundKeys.data(), key_type);
 
-		std::vector<unsigned char> iv_vec(iv);
+		std::vector<unsigned char> iv_vec;
+		if (iv && iv_len) iv_vec.assign(iv, iv + iv_len);
+
 		if (iv_vec.empty()) iv_vec.resize(BLOCK_SIZE, 0);
 		else if (iv_vec.size() < BLOCK_SIZE) iv_vec.resize(BLOCK_SIZE, 0);
 
-		std::vector<unsigned char> result(data.size());
+		std::vector<unsigned char> result(data_len);
 		unsigned char feedback[BLOCK_SIZE];
 
 		memcpy(feedback, iv_vec.data(), BLOCK_SIZE);
 
-		for (size_t i = 0; i < data.size(); i += BLOCK_SIZE) {
+		for (size_t i = 0; i < data_len; i += BLOCK_SIZE) {
 			unsigned char encrypted[BLOCK_SIZE];
 			encryptBlock(feedback, encrypted, roundKeys.data(), nr);
 
-			size_t remaining = data.size() - i;
+			size_t remaining = data_len - i;
 			size_t block_size = (remaining < BLOCK_SIZE) ? remaining : BLOCK_SIZE;
 
 			for (size_t j = 0; j < block_size; j++) {
-				result[i + j] = data[i + j] ^ encrypted[j];
+				result[i + j] = reinterpret_cast<const unsigned char*>(data)[i + j] ^ encrypted[j];
 				feedback[j] = result[i + j];
 			}
 
@@ -437,37 +496,39 @@ public:
 
 		return result;
 	}
-	static std::vector<unsigned char> en_cfb(const unsigned char* data, size_t data_len, const unsigned char* key, size_t key_len, const unsigned char* iv = nullptr, size_t iv_len = 0) {
-		return en_cfb(std::vector<unsigned char>(data, data + data_len), std::vector<unsigned char>(key, key + key_len), iv ? std::vector<unsigned char>(iv, iv + iv_len) : std::vector<unsigned char>());
-	}
-	static std::vector<unsigned char> de_cfb(const std::vector<unsigned char>& data, const std::vector<unsigned char>& key, const std::vector<unsigned char>& iv = {}) {
-		checkKeySize(key);
+	static std::vector<unsigned char> en_cfb(const std::vector<unsigned char>& data, const std::vector<unsigned char>& key, const std::vector<unsigned char>& iv = {}) { return en_cfb(data.data(), data.size(), key.data(), key.size(), iv.data(), iv.size()); }
 
-		int key_type = getKeyLengthType(key.size());
+	static std::vector<unsigned char> de_cfb(const void* data, size_t data_len, const unsigned char* key, size_t key_len, const unsigned char* iv = nullptr, size_t iv_len = 0)
+	{
+		checkKeySize(key_len);
+
+		int key_type = getKeyLengthType(key_len);
 		int nr = getNr(key_type);
 
 		std::vector<unsigned char> roundKeys(16 * (nr + 1));
-		keyExpansion(key.data(), roundKeys.data(), key_type);
+		keyExpansion(key, roundKeys.data(), key_type);
 
-		std::vector<unsigned char> iv_vec(iv);
+		std::vector<unsigned char> iv_vec;
+		if (iv && iv_len) iv_vec.assign(iv, iv + iv_len);
+
 		if (iv_vec.empty()) iv_vec.resize(BLOCK_SIZE, 0);
 		else if (iv_vec.size() < BLOCK_SIZE) iv_vec.resize(BLOCK_SIZE, 0);
 
-		std::vector<unsigned char> result(data.size());
+		std::vector<unsigned char> result(data_len);
 		unsigned char feedback[BLOCK_SIZE];
 
 		memcpy(feedback, iv_vec.data(), BLOCK_SIZE);
 
-		for (size_t i = 0; i < data.size(); i += BLOCK_SIZE) {
+		for (size_t i = 0; i < data_len; i += BLOCK_SIZE) {
 			unsigned char encrypted[BLOCK_SIZE];
 			encryptBlock(feedback, encrypted, roundKeys.data(), nr);
 
-			size_t remaining = data.size() - i;
+			size_t remaining = data_len - i;
 			size_t block_size = (remaining < BLOCK_SIZE) ? remaining : BLOCK_SIZE;
 
 			for (size_t j = 0; j < block_size; j++) {
-				result[i + j] = data[i + j] ^ encrypted[j];
-				feedback[j] = data[i + j];
+				result[i + j] = reinterpret_cast<const unsigned char*>(data)[i + j] ^ encrypted[j];
+				feedback[j] = reinterpret_cast<const unsigned char*>(data)[i + j];
 			}
 
 			for (size_t j = block_size; j < BLOCK_SIZE; j++) feedback[j] = 0;
@@ -475,8 +536,6 @@ public:
 
 		return result;
 	}
-	static std::vector<unsigned char> de_cfb(const unsigned char* data, size_t data_len, const unsigned char* key, size_t key_len, const unsigned char* iv = nullptr, size_t iv_len = 0) {
-		return de_cfb(std::vector<unsigned char>(data, data + data_len), std::vector<unsigned char>(key, key + key_len), iv ? std::vector<unsigned char>(iv, iv + iv_len) : std::vector<unsigned char>());
-	}
+	static std::vector<unsigned char> de_cfb(const std::vector<unsigned char>& data, const std::vector<unsigned char>& key, const std::vector<unsigned char>& iv = {}) { return de_cfb(data.data(), data.size(), key.data(), key.size(), iv.data(), iv.size()); }
 };
 #endif

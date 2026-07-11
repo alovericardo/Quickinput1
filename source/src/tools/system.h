@@ -76,7 +76,7 @@ namespace QiTools
 			CloseClipboard();
 			return text;
 		}
-		static bool ExecuteCmd(std::wstring cmd, std::wstring& output) {
+		static bool ExecuteCmd(std::wstring cmd, std::string& output) {
 			SECURITY_ATTRIBUTES sa;
 			sa.nLength = sizeof(SECURITY_ATTRIBUTES);
 			sa.bInheritHandle = TRUE;
@@ -94,7 +94,7 @@ namespace QiTools
 			std::unique_ptr<wchar_t[]> cmdLine = std::make_unique<wchar_t[]>(cmd.size() + 1);
 			wcscpy_s(cmdLine.get(), cmd.size() + 1, cmd.c_str());
 			wchar_t cmdPath[64]; ExpandEnvironmentStringsW(L"%ComSpec%", cmdPath, 64);
-			if (CreateProcessW(cmdPath, cmdLine.get(), NULL, NULL, TRUE, CREATE_NEW_CONSOLE | CREATE_UNICODE_ENVIRONMENT, NULL, NULL, &si, &pi))
+			if (CreateProcessW(cmdPath, cmdLine.get(), NULL, NULL, TRUE, CREATE_UNICODE_ENVIRONMENT, NULL, NULL, &si, &pi))
 			{
 				CloseHandle(hWritePipe);
 				std::string result;
@@ -108,7 +108,7 @@ namespace QiTools
 				WaitForSingleObject(pi.hProcess, INFINITE);
 				CloseHandle(pi.hProcess);
 				CloseHandle(pi.hThread);
-				output = String::toWString(result, CP_ACP);
+				output = result;
 				return true;
 			}
 			CloseHandle(hWritePipe);

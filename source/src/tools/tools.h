@@ -25,6 +25,7 @@
 #include "task.h"
 #include "time.h"
 #include "texteditbox.h"
+#include "format.h"
 #include "csvtool.h"
 #include "restool.h"
 #include "ntp.h"

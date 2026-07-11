@@ -2,11 +2,17 @@
 #include "SettingsUi.h"
 SettingsUi::SettingsUi(QWidget* parent) : QWidget(parent)
 {
+	Qi::widget.settings = this;
 	ui.setupUi(this);
+	Qi::widget.help = &help;
 	setWindowFlags(Qt::FramelessWindowHint);
 	Init();
 	Event();
 	StyleGroup();
+#ifndef Q_DRIVER
+	ui.driver_label->setHidden(true);
+	ui.driver_check->setHidden(true);
+#endif
 #ifndef Q_KEYEDIT_PAD_ENABLED
 	ui.pad_label->setHidden(true);
 	ui.pad_check->setHidden(true);
@@ -53,7 +59,7 @@ void SettingsUi::Init()
 		ui.ocr_lang_combo->setEditable(true);
 		ui.ocr_lang_combo->lineEdit()->setReadOnly(true);
 		ui.ocr_lang_combo->lineEdit()->setAlignment(Qt::AlignCenter);
-		ui.ocr_lang_combo->addItem("默认");
+		ui.ocr_lang_combo->addItem(lang_trans("默认"));
 		QDir dir("OCR");
 		dir.setFilter(QDir::Filter::Dirs);
 		QFileInfoList dirInfos = dir.entryInfoList();
@@ -90,31 +96,62 @@ void SettingsUi::Init()
 		ui.macro_save_combo->setEditable(true);
 		ui.macro_save_combo->lineEdit()->setReadOnly(true);
 		ui.macro_save_combo->lineEdit()->setAlignment(Qt::AlignCenter);
-		ui.macro_save_combo->addItem("Json可读");
-		ui.macro_save_combo->addItem("Qim体积小");
+		ui.macro_save_combo->addItem("Json(可读)");
+		ui.macro_save_combo->addItem("Qim(体积小)");
 		if (Qi::set.save_type > Macro::StorageType::QIM) ui.macro_save_combo->setCurrentIndex(Macro::StorageType::JSON);
 		else ui.macro_save_combo->setCurrentIndex(Qi::set.save_type);
 	}
 	if ("key edit")
 	{
 		QKeyEditKeys keys;
-		if (sets->key1) keys.append(sets->key1);
-		if (sets->key2) keys.append(sets->key2);
+		if (sets.key1) keys.append(sets.key1);
+		if (sets.key2) keys.append(sets.key2);
 		ui.stateKey_keyedit->setKeys(keys);
 
-		ui.recordKey_keyedit->setKey(sets->recKey);
+		ui.recordKey_keyedit->setKey(sets.recKey);
 	}
-	ui.recordTrack_check->setChecked(sets->recTrack);
-	ui.enableDefault_check->setChecked(sets->defOn);
-	ui.showState_check->setChecked(sets->showTips);
-	ui.sound_check->setChecked(sets->audFx);
-	ui.hideDefault_check->setChecked(sets->minMode);
-	ui.pad_check->setChecked(sets->pad);
+	if ("lang")
+	{
+		ui.lang_combo->setEditable(true);
+		ui.lang_combo->lineEdit()->setReadOnly(true);
+		ui.lang_combo->lineEdit()->setAlignment(Qt::AlignCenter);
+		ui.lang_combo->addItem("中文(默认)");
+		int index{};
+		auto files = File::Find(Qi::langDir, QString("*") + Qi::langType);
+		for (size_t i = 0; i < files.size(); i++)
+		{
+			auto& file = files[i];
+			QString name = file.baseName();
+			ui.lang_combo->addItem(name);
+			if (index == 0 && name == Qi::set.lang) index = i + 1;
+		}
+		if (index)
+		{
+			Qi::lang = Language::load(Language::makePath(Qi::set.lang));
+			if (!Qi::lang.map.empty())
+			{
+				ui.lang_combo->setCurrentIndex(index);
+				Qi::widget.langNotify();
+			}
+		}
+	}
+#ifdef Q_DRIVER
+	ui.driver_check->setChecked(sets.driver && Qi::driver.isInit());
+#endif
+	ui.recordTrack_check->setChecked(sets.recTrack);
+	ui.enableDefault_check->setChecked(sets.defOn);
+	ui.showState_check->setChecked(sets.showTips);
+	ui.sound_check->setChecked(sets.audFx);
+	ui.hideDefault_check->setChecked(sets.minMode);
+	ui.pad_check->setChecked(sets.pad);
 	ui.start_check->setChecked(Task::Find(L"QuickInput"));
 	if ("clear shortcut")
 	{
 		ui.readme_button->installEventFilter(this);
 		ui.popText_button->installEventFilter(this);
+#ifdef Q_DRIVER
+		ui.driver_check->installEventFilter(this);
+#endif
 		ui.recordTrack_check->installEventFilter(this);
 		ui.enableDefault_check->installEventFilter(this);
 		ui.showState_check->installEventFilter(this);
@@ -126,7 +163,7 @@ void SettingsUi::Init()
 }
 void SettingsUi::Event()
 {
-	connect(ui.readme_button, &QPushButton::clicked, this, [this] { more.show(); });
+	connect(ui.readme_button, &QPushButton::clicked, this, [this] { help.show(); });
 	connect(ui.popText_button, &QPushButton::clicked, this, [this] {
 		PopsUi ps;
 		Qi::widget.dialogActive = true;
@@ -135,6 +172,26 @@ void SettingsUi::Event()
 		Qi::widget.main->show();
 		Qi::widget.dialogActive = false;
 		QiJson::SaveJson(); });
+	connect(ui.lang_combo, &QComboBox::currentIndexChanged, this, [this](int index) {
+		if (index == 0)
+		{
+			Qi::set.lang.clear();
+			Qi::lang.name.clear();
+			Qi::lang.map.clear();
+			Qi::widget.langReload();
+		}
+		else
+		{
+			QString lang = ui.lang_combo->currentText();
+			auto language = Language::load(Language::makePath(lang));
+			if (language.map.empty()) return;
+			Qi::set.lang = lang;
+			Qi::lang.name = lang;
+			Qi::lang.map = std::move(language.map);
+			Qi::widget.langReload();
+		}
+		QiJson::SaveJson();
+		});
 	connect(ui.ocr_lang_combo, &QComboBox::currentIndexChanged, this, [this](int index) {
 		if (index >= 0)
 		{
@@ -198,12 +255,25 @@ void SettingsUi::Event()
 		}
 		QiJson::SaveJson();
 		});
-	connect(ui.recordTrack_check, &QCheckBox::toggled, this, [this](bool state) { sets->recTrack = state; QiJson::SaveJson(); });
-	connect(ui.enableDefault_check, &QCheckBox::toggled, this, [this](bool state) { sets->defOn = state; QiJson::SaveJson(); });
-	connect(ui.showState_check, &QCheckBox::toggled, this, [this](bool state) { sets->showTips = state; QiJson::SaveJson(); });
-	connect(ui.sound_check, &QCheckBox::toggled, this, [this](bool state) { sets->audFx = state; QiJson::SaveJson(); });
-	connect(ui.hideDefault_check, &QCheckBox::toggled, this, [this](bool state) { sets->minMode = state; QiJson::SaveJson(); });
-	connect(ui.pad_check, &QCheckBox::toggled, this, [this](bool state) { sets->pad = state; Qi::widget.keyEditReload(); QiJson::SaveJson(); });
+#ifdef Q_DRIVER
+	connect(ui.driver_check, &QCheckBox::toggled, this, [this](bool state) 
+		{
+			if (state && !Qi::driver.isInit())
+			{
+				QiFn::InitDriver();
+				if (Qi::driver.isInit()) sets.driver = true;
+				else ui.driver_check->setChecked(sets.driver = false);
+			}
+			else sets.driver = false;
+			QiJson::SaveJson();
+		});
+#endif
+	connect(ui.recordTrack_check, &QCheckBox::toggled, this, [this](bool state) { sets.recTrack = state; QiJson::SaveJson(); });
+	connect(ui.enableDefault_check, &QCheckBox::toggled, this, [this](bool state) { sets.defOn = state; QiJson::SaveJson(); });
+	connect(ui.showState_check, &QCheckBox::toggled, this, [this](bool state) { sets.showTips = state; QiJson::SaveJson(); });
+	connect(ui.sound_check, &QCheckBox::toggled, this, [this](bool state) { sets.audFx = state; QiJson::SaveJson(); });
+	connect(ui.hideDefault_check, &QCheckBox::toggled, this, [this](bool state) { sets.minMode = state; QiJson::SaveJson(); });
+	connect(ui.pad_check, &QCheckBox::toggled, this, [this](bool state) { sets.pad = state; Qi::widget.keyEditReload(); QiJson::SaveJson(); });
 	connect(ui.start_check, &QCheckBox::toggled, this, [this] {
 		if (Task::Find(L"QuickInput"))
 		{
@@ -226,31 +296,99 @@ void SettingsUi::Event()
 }
 void SettingsUi::StyleGroup()
 {
-	ui.readme_button->setProperty("group", "settings-button");
-	ui.popText_button->setProperty("group", "settings-button");
-	ui.recordTrack_check->setProperty("group", "check");
-	ui.enableDefault_check->setProperty("group", "check");
-	ui.showState_check->setProperty("group", "check");
-	ui.sound_check->setProperty("group", "check");
-	ui.hideDefault_check->setProperty("group", "check");
-	ui.pad_check->setProperty("group", "check");
-	ui.start_check->setProperty("group", "check");
-	ui.ocr_lang_combo->setProperty("group", "combo");
+	style_set_group(ui.readme_button, "settings-button");
+	style_set_group(ui.popText_button, "settings-button");
+#ifdef Q_DRIVER
+	style_set_group(ui.driver_check, "check");
+#endif
+	style_set_group(ui.recordTrack_check, "check");
+	style_set_group(ui.enableDefault_check, "check");
+	style_set_group(ui.showState_check, "check");
+	style_set_group(ui.sound_check, "check");
+	style_set_group(ui.hideDefault_check, "check");
+	style_set_group(ui.pad_check, "check");
+	style_set_group(ui.start_check, "check");
+	style_set_group(ui.lang_combo, "combo");
+	ui.lang_combo->setView(new QListView());
+	style_set_group(ui.ocr_lang_combo, "combo");
 	ui.ocr_lang_combo->setView(new QListView());
-	ui.ocr_lang_combo->view()->setProperty("group", "combo_body");
-	ui.ocr_thread_combo->setProperty("group", "combo");
+	style_set_group(ui.ocr_lang_combo->view(), "combo_body");
+	style_set_group(ui.ocr_thread_combo, "combo");
 	ui.ocr_thread_combo->setView(new QListView());
-	ui.ocr_thread_combo->view()->setProperty("group", "combo_body");
-	ui.theme_combo->setProperty("group", "combo");
+	style_set_group(ui.ocr_thread_combo->view(), "combo_body");
+	style_set_group(ui.theme_combo, "combo");
 	ui.theme_combo->setView(new QListView());
-	ui.theme_combo->view()->setProperty("group", "combo_body");
-	ui.macro_save_combo->setProperty("group", "combo");
+	ui.theme_combo->style_set_group(view(), "combo_body");
+	style_set_group(ui.macro_save_combo, "combo");
 	ui.macro_save_combo->setView(new QListView());
-	ui.macro_save_combo->view()->setProperty("group", "combo_body");
-	ui.stateKey_keyedit->setProperty("group", "line_edit");
-	ui.recordKey_keyedit->setProperty("group", "line_edit");
+	style_set_group(ui.macro_save_combo->view(), "combo_body");
+	style_set_group(ui.stateKey_keyedit, "line_edit");
+	style_set_group(ui.recordKey_keyedit, "line_edit");
 	ui.scrollArea_widget->setStyleSheet(QString("#") + ui.scrollArea_widget->objectName() + "{background-color:rgba(0,0,0,0)}");
 	ui.scrollArea->setStyleSheet("QScrollArea,QScrollBar,QScrollBar::sub-line,QScrollBar::add-line{background-color:rgba(0,0,0,0);border:none}QScrollBar::handle{background-color:rgba(128,128,128,0.3);border:none}");
+}
+void SettingsUi::LoadLanguage()
+{
+	std::call_once(lang_once, [this] {
+		lang_save_t(ui.readme_label);
+		lang_save_t(ui.readme_button);
+
+		lang_save_t(ui.popText_label);
+		lang_save_t(ui.popText_button);
+
+		lang_save_t(ui.theme_label);
+		lang_save_cmb(ui.theme_combo);
+
+		lang_save_t(ui.ocr_lang_label);
+		lang_save_t(ui.ocr_thread_label);
+		lang_save_icmb(ui.ocr_lang_combo, 0);
+		lang_save_icmb(ui.ocr_thread_combo, 0);
+
+		lang_save_t(ui.macro_save_label);
+		lang_save_cmb(ui.macro_save_combo);
+
+		lang_save_t(ui.stateKey_label);
+		lang_save_t(ui.recordKey_label);
+		lang_save_t(ui.recordTrack_label);
+		lang_save_t(ui.enableDefault_label);
+		lang_save_t(ui.showState_label);
+		lang_save_t(ui.sound_label);
+		lang_save_t(ui.hideDefault_label);
+#ifdef Q_KEYEDIT_PAD_ENABLED
+		lang_save_t(ui.pad_label);
+#endif
+		lang_save_t(ui.start_label);
+	});
+	lang_load_t(ui.readme_label);
+	lang_load_t(ui.readme_button);
+
+	lang_load_t(ui.popText_label);
+	lang_load_t(ui.popText_button);
+
+	lang_load_t(ui.theme_label);
+	lang_load_cmb(ui.theme_combo);
+
+	lang_load_t(ui.ocr_lang_label);
+	lang_load_t(ui.ocr_thread_label);
+	lang_load_icmb(ui.ocr_lang_combo, 0);
+	lang_load_icmb(ui.ocr_thread_combo, 0);
+
+	lang_load_t(ui.macro_save_label);
+	lang_load_cmb(ui.macro_save_combo);
+
+	lang_load_t(ui.stateKey_label);
+	lang_load_ke(ui.stateKey_keyedit);
+	lang_load_t(ui.recordKey_label);
+	lang_load_ke(ui.recordKey_keyedit);
+	lang_load_t(ui.recordTrack_label);
+	lang_load_t(ui.enableDefault_label);
+	lang_load_t(ui.showState_label);
+	lang_load_t(ui.sound_label);
+	lang_load_t(ui.hideDefault_label);
+#ifdef Q_KEYEDIT_PAD_ENABLED
+	lang_load_t(ui.pad_label);
+#endif
+	lang_load_t(ui.start_label);
 }
 
 bool SettingsUi::event(QEvent* e)
@@ -267,14 +405,14 @@ bool SettingsUi::eventFilter(QObject* obj, QEvent* e)
 	if ((e->type() == QEvent::KeyPress) || (e->type() == QEvent::KeyRelease)) return true;
 	return QWidget::eventFilter(obj, e);
 }
-void SettingsUi::closeEvent(QCloseEvent*)
-{
-	more.close();
-}
 void SettingsUi::customEvent(QEvent* e)
 {
+	if (e->type() == static_cast<int>(QiEvent::lang_reload))
+	{
+		LoadLanguage();
+	}
 #ifdef Q_KEYEDIT_PAD_ENABLED
-	if (e->type() == static_cast<int>(QiEvent::key_reset))
+	else if (e->type() == static_cast<int>(QiEvent::key_reset))
 	{
 		ui.stateKey_keyedit->setPadEnabled(Qi::set.pad);
 		ui.recordKey_keyedit->setPadEnabled(Qi::set.pad);

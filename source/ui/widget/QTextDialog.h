@@ -5,6 +5,7 @@
 #include <qpushbutton.h>
 #include <qlayout.h>
 #include <windows.h>
+#include <src/lang.h>
 class QTextDialog : public QDialog
 {
 	Q_OBJECT;
@@ -31,7 +32,7 @@ public:
 		saveButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 		saveButton->setMinimumSize(QSize(60, 24));
 		saveButton->setMaximumSize(QSize(60, 24));
-		saveButton->setText("保存");
+		saveButton->setText(lang_trans("保存"));
 
 		layout = new QVBoxLayout(this);
 		layout->setContentsMargins(8, 8, 8, 8);
@@ -79,6 +80,6 @@ public:
 	}
 	void closeEvent(QCloseEvent*)
 	{
-		if (editable && !save && text != textEdit->toPlainText() && MessageBoxW(nullptr, L"是否保存？", L"TextEdit", MB_YESNO) == IDYES) save = true;
+		if (editable && !save && text != textEdit->toPlainText() && MessageBoxW(nullptr, lang_trans("是否保存？").toStdWString().c_str(), L"TextEdit", MB_YESNO) == IDYES) save = true;
 	}
 };

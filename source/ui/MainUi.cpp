@@ -5,10 +5,6 @@ MainUi::MainUi(int tab)
 	Qi::widget.varView = &varView;
 	Qi::widget.msgView = &msgView;
 	ui.setupUi(this);
-	Qi::widget.macro = ui.tab_macro;
-	Qi::widget.trigger = ui.tab_trigger;
-	Qi::widget.func = ui.tab_func;
-	Qi::widget.settings = ui.tab_settings;
 	if (!Qi::title.isEmpty()) setWindowTitle(Qi::title), ui.title_label->setText(Qi::title);
 
 	QRect screenGeometry = QGuiApplication::primaryScreen()->geometry();
@@ -40,10 +36,6 @@ MainUi::MainUi(int tab)
 	show();
 	if (Qi::set.minMode) hide();
 }
-QString MainUi::Version() const
-{
-	return ui.tab_about->Version();
-}
 
 void MainUi::Init()
 {
@@ -62,11 +54,11 @@ void MainUi::Init()
 	if ("task bar icon")
 	{
 		menu = new QMenu(this);
-		ac_on = new QAction(QiUi::Text::muOn, this);
-		ac_off = new QAction(QiUi::Text::muOff, this);
-		ac_show = new QAction(QiUi::Text::muShow, this);
-		ac_hide = new QAction(QiUi::Text::muHide, this);
-		ac_exit = new QAction(QiUi::Text::muExit, this);
+		ac_on = new QAction(QiUi::Text::muOn(), this);
+		ac_off = new QAction(QiUi::Text::muOff(), this);
+		ac_show = new QAction(QiUi::Text::muShow(), this);
+		ac_hide = new QAction(QiUi::Text::muHide(), this);
+		ac_exit = new QAction(QiUi::Text::muExit(), this);
 		menu->addAction(ac_on);
 		menu->addAction(ac_off);
 		menu->addAction(ac_show);
@@ -90,15 +82,35 @@ void MainUi::Event()
 }
 void MainUi::StyleGroup()
 {
-	setProperty("group", "frame");
-	ui.title_widget->setProperty("group", "title");
-	ui.content_widget->setProperty("group", "client");
-	ui.title_close_button->setProperty("group", "title-close_button");
-	ui.title_hide_button->setProperty("group", "title-hide_button");
-	ui.title_min_button->setProperty("group", "title-min_button");
-	ui.tabWidget->setProperty("group", "tab_widget");
-	ui.tabWidget->tabBar()->setProperty("group", "tab_widget_bar");
-	menu->setProperty("group", "context_menu");
+	setProperty(Prop::style_group, "frame");
+	style_set_group(ui.title_widget, "title");
+	style_set_group(ui.content_widget, "client");
+	style_set_group(ui.title_close_button, "title-close_button");
+	style_set_group(ui.title_hide_button, "title-hide_button");
+	style_set_group(ui.title_min_button, "title-min_button");
+	style_set_group(ui.tabWidget, "tab_widget");
+	style_set_group(ui.tabWidget->tabBar(), "tab_widget_bar");
+	style_set_group(menu, "context_menu");
+}
+void MainUi::LoadLanguage()
+{
+	std::call_once(lang_once, [this] {
+		int count = ui.tabWidget->count();
+		for (size_t i = 0; i < count; i++) ui.tabWidget->widget(i)->setProperty(Prop::lang_save, ui.tabWidget->tabText(i));
+		lang_save_tp(ui.title_close_button);
+		lang_save_tp(ui.title_min_button);
+		lang_save_tp(ui.title_hide_button);
+	});
+	int count = ui.tabWidget->count();
+	for (size_t i = 0; i < count; i++) ui.tabWidget->setTabText(i, lang_trans(ui.tabWidget->widget(i)->property(Prop::lang_save).toString()));
+	lang_load_tp(ui.title_close_button);
+	lang_load_tp(ui.title_min_button);
+	lang_load_tp(ui.title_hide_button);
+	ac_on->setText(QiUi::Text::muOn());
+	ac_off->setText(QiUi::Text::muOff());
+	ac_show->setText(QiUi::Text::muShow());
+	ac_hide->setText(QiUi::Text::muHide());
+	ac_exit->setText(QiUi::Text::muExit());
 }
 
 bool MainUi::event(QEvent* e)
@@ -140,4 +152,19 @@ void MainUi::showEvent(QShowEvent*)
 void MainUi::resizeEvent(QResizeEvent* e)
 {
 	Qi::set.mainSize = e->size();
+}
+void MainUi::customEvent(QEvent* e)
+{
+	if (e->type() == static_cast<int>(QiEvent::lang_reload))
+	{
+		LoadLanguage();
+	}
+	else if (e->type() == static_cast<int>(QiEvent::lang_notify))
+	{
+		Qi::widget.langReload();
+	}
+}
+void MainUi::closeEvent(QCloseEvent*)
+{
+	Qi::exit();
 }

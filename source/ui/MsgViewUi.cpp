@@ -15,7 +15,7 @@ MsgViewUi::MsgViewUi()
 	ui.line->horizontalHeader()->setSectionResizeMode(_col_macro, QHeaderView::ResizeMode::Fixed);
 	ui.line->horizontalHeader()->setSectionResizeMode(_col_text, QHeaderView::ResizeMode::Stretch);
 	ui.line->setColumnWidth(_col_time, 70);
-	ui.line->setColumnWidth(_col_level, 50);
+	ui.line->setColumnWidth(_col_level, 70);
 	ui.line->setColumnWidth(_col_macro, 100);
 	connect(ui.title_close_button, &QPushButton::clicked, this, [this] { hide(); });
 	connect(ui.filter_msg_check, &QCheckBox::toggled, this, [this](bool check) { filter_msg = check; update(); });
@@ -26,18 +26,18 @@ MsgViewUi::MsgViewUi()
 
 void MsgViewUi::StyleGroup()
 {
-	setProperty("group", "frame");
-	ui.title_widget->setProperty("group", "title");
-	ui.content_widget->setProperty("group", "client");
-	ui.title_close_button->setProperty("group", "title-close_button");
-	ui.text->setProperty("group", "text_edit");
-	ui.filter_msg_check->setProperty("group", "check");
-	ui.filter_war_check->setProperty("group", "check");
-	ui.filter_err_check->setProperty("group", "check");
+	setProperty(Prop::style_group, "frame");
+	style_set_group(ui.title_widget, "title");
+	style_set_group(ui.content_widget, "client");
+	style_set_group(ui.title_close_button, "title-close_button");
+	style_set_group(ui.text, "text_edit");
+	style_set_group(ui.filter_msg_check, "check");
+	style_set_group(ui.filter_war_check, "check");
+	style_set_group(ui.filter_err_check, "check");
 
-	ui.line->setProperty("group", "action_table");
-	ui.line->horizontalHeader()->setProperty("group", "action_table_header");
-	ui.line->verticalHeader()->setProperty("group", "action_table_header");
+	style_set_group(ui.line, "action_table");
+	style_set_group(ui.line->horizontalHeader(), "action_table_header");
+	style_set_group(ui.line->verticalHeader(), "action_table_header");
 	ui.line->setStyleSheet("QTableCornerButton::section,QHeaderView::section,QScrollBar,QScrollBar::sub-line,QScrollBar::add-line{background-color:rgba(0,0,0,0);border:none}QScrollBar::handle{background-color:rgba(128,128,128,0.3);border:none}");
 	if ("table corner button")
 	{
@@ -53,17 +53,40 @@ void MsgViewUi::StyleGroup()
 				box->setContentsMargins(0, 0, 0, 0);
 				QWidget* widget = new QWidget(corner);
 				box->addWidget(widget);
-				corner->setProperty("group", "action_table_header");
-				widget->setProperty("group", "action_table_header");
+				style_set_group(corner, "action_table_header");
+				style_set_group(widget, "action_table_header");
 				break;
 			}
 			else if (name == "QLineEdit")
 			{
 				QLineEdit* lineEdit = (QLineEdit*)obj;
-				lineEdit->setProperty("group", "action_table_header");
+				style_set_group(lineEdit, "action_table_header");
 			}
 		}
 	}
+}
+void MsgViewUi::LoadLanguage()
+{
+	std::call_once(lang_once, [this] {
+		lang_save_t(ui.title_label);
+		lang_save_t(ui.filter_label);
+		lang_save_t(ui.filter_msg_check);
+		lang_save_t(ui.filter_err_check);
+		lang_save_t(ui.filter_war_check);
+		lang_save_tb(ui.line->horizontalHeaderItem(_col_time));
+		lang_save_tb(ui.line->horizontalHeaderItem(_col_level));
+		lang_save_tb(ui.line->horizontalHeaderItem(_col_macro));
+		lang_save_tb(ui.line->horizontalHeaderItem(_col_text));
+	});
+	lang_load_t(ui.title_label);
+	lang_load_t(ui.filter_label);
+	lang_load_t(ui.filter_msg_check);
+	lang_load_t(ui.filter_err_check);
+	lang_load_t(ui.filter_war_check);
+	lang_load_tb(ui.line->horizontalHeaderItem(_col_time));
+	lang_load_tb(ui.line->horizontalHeaderItem(_col_level));
+	lang_load_tb(ui.line->horizontalHeaderItem(_col_macro));
+	lang_load_tb(ui.line->horizontalHeaderItem(_col_text));
 }
 
 void MsgViewUi::append(const MsgViewInfo& info, bool isUpdate)
@@ -83,19 +106,19 @@ void MsgViewUi::append(const MsgViewInfo& info, bool isUpdate)
 	{
 	case MsgViewInfo::_war:
 	{
-		item = new QTableWidgetItem("警告");
+		item = new QTableWidgetItem(lang_trans("警告"));
 		item->setTextAlignment(Qt::AlignCenter);
 		ui.line->setItem(pos, _col_level, item);
 	} break;
 	case MsgViewInfo::_err:
 	{
-		item = new QTableWidgetItem("错误");
+		item = new QTableWidgetItem(lang_trans("错误"));
 		item->setTextAlignment(Qt::AlignCenter);
 		ui.line->setItem(pos, _col_level, item);
 	} break;
 	default:
 	{
-		item = new QTableWidgetItem("消息");
+		item = new QTableWidgetItem(lang_trans("消息"));
 		item->setTextAlignment(Qt::AlignCenter);
 		ui.line->setItem(pos, _col_level, item);
 	} break;
@@ -166,5 +189,9 @@ void MsgViewUi::customEvent(QEvent* e)
 	else if (e->type() == MsgViewEvent::Type::hide)
 	{
 		hide();
+	}
+	else if (e->type() == static_cast<int>(QiEvent::lang_reload))
+	{
+		LoadLanguage();
 	}
 }

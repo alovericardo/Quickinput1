@@ -7,6 +7,7 @@
 #include <qmenu.h>
 #include <qlineedit.h>
 #include <qfiledialog.h>
+#include <src/inc_project.h>
 
 class QFileEdit : public QLineEdit
 {
@@ -20,11 +21,11 @@ class QFileEdit : public QLineEdit
 	QString m_dir;
 
 public:
-	QFileEdit(QWidget* parent = nullptr) : QLineEdit(parent), m_menu(QMenu(this)), m_system("选择文件"), m_title("选择文件"), m_type("*.*"), m_dir("C:/Windows")
+	QFileEdit(QWidget* parent = nullptr) : QLineEdit(parent), m_menu(QMenu(this)), m_system(lang_trans("选择文件")), m_title(lang_trans("选择文件")), m_type("*.*"), m_dir("C:/Windows")
 	{
 		setContextMenuPolicy(Qt::ContextMenuPolicy::NoContextMenu);
 		m_menu.addAction(&m_system);
-		m_menu.setProperty("group", "context_menu");
+		m_menu.setProperty(Prop::style_group, "context_menu");
 		connect(&m_system, &QAction::triggered, this, [this] { QString file = QFileDialog::getOpenFileName(this, m_title, m_dir, m_type); if (!file.isEmpty()) QLineEdit::setText(QDir::toNativeSeparators(file)); });
 	}
 

@@ -12,6 +12,7 @@ class VarViewUi : public QDialogFrameless
 		tableColumn_value
 	};
 	Ui::VarViewUiClass ui;
+	std::once_flag lang_once;
 	bool updating = false;
 	bool reload = false;
 
@@ -20,6 +21,8 @@ public:
 
 private:
 	void StyleGroup();
+	void LoadLanguage();
+
 	void TableUpdate(QTableWidget*, const QiVarMap);
 	void TableUpdate();
 

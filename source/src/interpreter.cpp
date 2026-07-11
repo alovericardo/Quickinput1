@@ -7,7 +7,7 @@ constexpr int interpreter_max_stack = 256;
 QiInterpreter::QiInterpreter(Macro& macro, bool isRunning, QiWorker& worker) :
 	worker(worker),
 	macro(macro),
-	actions(isRunning ? macro.acRun : macro.acEnd),
+	actions(nullptr),
 	cursor(macro.cursor),
 	speed(macro.speed),
 	timer(macro.timer),
@@ -19,15 +19,9 @@ QiInterpreter::QiInterpreter(Macro& macro, bool isRunning, QiWorker& worker) :
 	posScaleY(macro.posScaleY)
 {
 	macro.interpreter = this;
-	if (isRunning)
-	{
-		macro.script_interpreter.clearLocal();
-		Qi::widget.varViewReload();
-		GetCursorPos(&cursor);
-	}
+	if (isRunning) GetCursorPos(&cursor);
 	if (macro.wndState) wndInput = &macro.wndInput;
 	else wndInput = nullptr;
-	if (Qi::debug) debug_entry = actions.iter([](const Action& a) { return a.base().debug_entry; });
 }
 
 int QiInterpreter::rand(int max, int min)
@@ -36,6 +30,12 @@ int QiInterpreter::rand(int max, int min)
 	macro.script_interpreter.setValue(QiScriptInterpreter::var_rand_last, min);
 	Qi::widget.varViewReload();
 	return min;
+}
+
+void QiInterpreter::setActions(Actions& actions)
+{
+	this->actions = &actions;
+	if (Qi::debug) debug_entry = actions.iter([](const Action& a) { return a.base().debug_entry; });
 }
 
 void QiInterpreter::setValue(const std::string& var, const QiVar& val)
@@ -98,23 +98,27 @@ QString QiInterpreter::makePath()
 
 std::string QiInterpreter::errPath()
 {
-	return std::string("路径：") + makePath().toStdString();
+	return lang_trans("路径").toStdString() + "：" + makePath().toStdString();
 }
 std::wstring QiInterpreter::werrPath()
 {
-	return std::wstring(L"\n\n路径：") + makePath().toStdWString();
+	return std::wstring(L"\n\n") + lang_trans(L"路径") + L"：" + makePath().toStdWString();
 }
 
 InterpreterResult QiInterpreter::ActionInterpreter(Actions& current)
 {
+	if (!actions)
+	{
+		throw std::exception("actions is nullptr");
+	}
 	if (current.empty())
 	{
-		if (&current == &actions) Sleep(1);
+		if (&current == actions) Sleep(1);
 		return InterpreterResult::r_continue;
 	}
 	else if (path.size() > interpreter_max_stack)
 	{
-		MsgBox::Error(std::wstring(L"宏：\"") + macro.name.toStdWString() + std::wstring(L"\"\n\n栈深度超过") + std::to_wstring(interpreter_max_stack) + L"\n\n为防止崩溃已停止运行", L"Quickinput Interpreter");
+		MsgBox::Error(lang_trans(L"宏") + L"：\"" + macro.name.toStdWString() + std::wstring(L"\"\n\n") + lang_trans(L"栈深度超过") + std::to_wstring(interpreter_max_stack) + L"\n\n" + lang_trans(L"为防止崩溃已停止运行"), L"Quickinput Interpreter");
 		return InterpreterResult::r_exit;
 	}
 	else
@@ -293,17 +297,16 @@ InterpreterResult QiInterpreter::ActionInterpreter(Actions& current)
 			case QiType::color:
 			{
 				QiColor& ref = action.to<QiColor>();
+				if (debug_entry) { if (ref.next.not_empty()) r_result = ActionInterpreter(ref.next); if (ref.next2.not_empty() && debug_entry) r_result = ActionInterpreter(ref.next2); continue; }
+				else if (jumpId) { if (ref.next.not_empty()) r_result = ActionInterpreter(ref.next); if (ref.next2.not_empty() && jumpId) r_result = ActionInterpreter(ref.next2); continue; }
+				RgbMap rgbMap;
+				HDC hdc;
 				RECT rect = {
 					ref.v_left.isEmpty() ? ref.rect.left : macro.script_interpreter.value(ref.v_left.toStdString()).toInteger(),
 					ref.v_top.isEmpty() ? ref.rect.top : macro.script_interpreter.value(ref.v_top.toStdString()).toInteger(),
 					ref.v_right.isEmpty() ? ref.rect.right : macro.script_interpreter.value(ref.v_right.toStdString()).toInteger(),
 					ref.v_bottom.isEmpty() ? ref.rect.bottom : macro.script_interpreter.value(ref.v_bottom.toStdString()).toInteger()
 				};
-
-				if (debug_entry) { if (ref.next.not_empty()) r_result = ActionInterpreter(ref.next); if (ref.next2.not_empty() && debug_entry) r_result = ActionInterpreter(ref.next2); continue; }
-				else if (jumpId) { if (ref.next.not_empty()) r_result = ActionInterpreter(ref.next); if (ref.next2.not_empty() && jumpId) r_result = ActionInterpreter(ref.next2); continue; }
-				RgbMap rgbMap;
-				HDC hdc;
 				if (wndInput)
 				{
 					rect = QiCvt::WR_AtR(rect, wndInput->wnd, macro.range);
@@ -388,16 +391,15 @@ InterpreterResult QiInterpreter::ActionInterpreter(Actions& current)
 			case QiType::image:
 			{
 				QiImage& ref = action.to<QiImage>();
+				if (debug_entry) { if (ref.next.not_empty()) r_result = ActionInterpreter(ref.next); if (ref.next2.not_empty() && debug_entry) r_result = ActionInterpreter(ref.next2); continue; }
+				else if (jumpId) { if (ref.next.not_empty()) r_result = ActionInterpreter(ref.next); if (ref.next2.not_empty() && jumpId) r_result = ActionInterpreter(ref.next2); continue; }RgbMap rgbMap;
+				HDC hdc;
 				RECT rect = {
 					ref.v_left.isEmpty() ? ref.rect.left : macro.script_interpreter.value(ref.v_left.toStdString()).toInteger(),
 					ref.v_top.isEmpty() ? ref.rect.top : macro.script_interpreter.value(ref.v_top.toStdString()).toInteger(),
 					ref.v_right.isEmpty() ? ref.rect.right : macro.script_interpreter.value(ref.v_right.toStdString()).toInteger(),
 					ref.v_bottom.isEmpty() ? ref.rect.bottom : macro.script_interpreter.value(ref.v_bottom.toStdString()).toInteger()
 				};
-
-				if (debug_entry) { if (ref.next.not_empty()) r_result = ActionInterpreter(ref.next); if (ref.next2.not_empty() && debug_entry) r_result = ActionInterpreter(ref.next2); continue; }
-				else if (jumpId) { if (ref.next.not_empty()) r_result = ActionInterpreter(ref.next); if (ref.next2.not_empty() && jumpId) r_result = ActionInterpreter(ref.next2); continue; }RgbMap rgbMap;
-				HDC hdc;
 				if (wndInput)
 				{
 					rect = QiCvt::WR_AtR(rect, wndInput->wnd, macro.range);
@@ -502,7 +504,7 @@ InterpreterResult QiInterpreter::ActionInterpreter(Actions& current)
 				const QiJump& ref = action.to<QiJump>();
 				if (ref.id > 0)
 				{
-					const Action* jumpPoint = actions.find(QiType::jumpPoint, ref.id);
+					const Action* jumpPoint = actions->find(QiType::jumpPoint, ref.id);
 					if (jumpPoint)
 					{
 						jumpId = ref.id;
@@ -531,7 +533,7 @@ InterpreterResult QiInterpreter::ActionInterpreter(Actions& current)
 			case QiType::blockExec:
 			{
 				QiBlockExec& ref = action.to<QiBlockExec>();
-				Action* block = actions.find(QiType::block, ref.id);
+				Action* block = actions->find(QiType::block, ref.id);
 				if (block) r_result = ActionInterpreter(block->base().next);
 			} break;
 			case QiType::quickInput:
@@ -591,17 +593,16 @@ InterpreterResult QiInterpreter::ActionInterpreter(Actions& current)
 			case QiType::ocr:
 			{
 				QiOcr& ref = action.to<QiOcr>();
-				RECT rect = {
-					ref.v_left.isEmpty() ? ref.rect.left : macro.script_interpreter.value(ref.v_left.toStdString()).toInteger(),
-					ref.v_top.isEmpty() ? ref.rect.top : macro.script_interpreter.value(ref.v_top.toStdString()).toInteger(),
-					ref.v_right.isEmpty() ? ref.rect.right : macro.script_interpreter.value(ref.v_right.toStdString()).toInteger(),
-					ref.v_bottom.isEmpty() ? ref.rect.bottom : macro.script_interpreter.value(ref.v_bottom.toStdString()).toInteger()
-				};
-
 				if (debug_entry) { if (ref.next.not_empty()) r_result = ActionInterpreter(ref.next); if (ref.next2.not_empty() && debug_entry) r_result = ActionInterpreter(ref.next2); continue; }
 				else if (jumpId) { if (ref.next.not_empty()) r_result = ActionInterpreter(ref.next); if (ref.next2.not_empty() && jumpId) r_result = ActionInterpreter(ref.next2); continue; }
 				try
 				{
+					RECT rect = {
+						ref.v_left.isEmpty() ? ref.rect.left : macro.script_interpreter.value(ref.v_left.toStdString()).toInteger(),
+						ref.v_top.isEmpty() ? ref.rect.top : macro.script_interpreter.value(ref.v_top.toStdString()).toInteger(),
+						ref.v_right.isEmpty() ? ref.rect.right : macro.script_interpreter.value(ref.v_right.toStdString()).toInteger(),
+						ref.v_bottom.isEmpty() ? ref.rect.bottom : macro.script_interpreter.value(ref.v_bottom.toStdString()).toInteger()
+					};
 					if (Qi::ocr)
 					{
 						CImage image;
@@ -718,7 +719,7 @@ InterpreterResult QiInterpreter::ActionInterpreter(Actions& current)
 					}
 					else
 					{
-						MsgBox::Error(std::wstring(L"未安装OCR组件") + werrPath(), L"Quickinput Interpreter"); return InterpreterResult::r_exit;
+						MsgBox::Error(lang_trans(L"未安装OCR组件") + werrPath(), L"Quickinput Interpreter"); return InterpreterResult::r_exit;
 					}
 				}
 				catch (std::exception e) { QiTr::UnBlock(); QiScriptInterpreter::showError(e.what(), errPath()); return InterpreterResult::r_exit; }
@@ -783,7 +784,7 @@ InterpreterResult QiInterpreter::ActionInterpreter(Actions& current)
 					}
 				}
 			} break;
-			case QiType::open: ShellExecuteW(nullptr, L"open", (const wchar_t*)action.to<QiOpen>().url.utf16(), nullptr, nullptr, SW_SHOW); break;
+			case QiType::open: Process::open(action.to<QiOpen>().url.toStdWString()); break;
 			case QiType::editDialog:
 			{
 				const QiEditDialog& ref = action.to<QiEditDialog>();
@@ -883,7 +884,7 @@ InterpreterResult QiInterpreter::ActionInterpreter(Actions& current)
 				}
 				else if (h)
 				{
-					MsgBox::Error(std::wstring(L"窗口不存在，无法设置范围") + werrPath(), L"Quickinput Interpreter"); return InterpreterResult::r_exit;
+					MsgBox::Error(lang_trans(L"窗口不存在，无法设置范围") + werrPath(), L"Quickinput Interpreter"); return InterpreterResult::r_exit;
 				}
 				else
 				{
@@ -893,7 +894,7 @@ InterpreterResult QiInterpreter::ActionInterpreter(Actions& current)
 			}
 			if (r_result != InterpreterResult::r_continue) break;
 		}
-		if ((r_result == InterpreterResult::r_top) && (&current == &actions)) goto r_top_entry;
+		if ((r_result == InterpreterResult::r_top) && (&current == actions)) goto r_top_entry;
 		return r_result;
 	}
 	return InterpreterResult::r_exit;

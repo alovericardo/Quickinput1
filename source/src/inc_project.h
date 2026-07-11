@@ -15,6 +15,29 @@
 #include <QTextDialog.h>
 // modules
 #include <src/ocr/QiOcrInterface.h>
+#ifdef Q_DRIVER
+#include <driver/QiDriver.h>
+#endif
+
+#include "ui.h"
+#include "lang.h"
+
+struct DataRole
+{
+	enum
+	{
+		id = Qt::UserRole,
+		type,
+		group,
+		macro,
+		lang
+	};
+};
+struct Prop
+{
+	static constexpr const char* style_group = "group";
+	static constexpr const char* lang_save = "lang";
+};
 
 // quickinput
 namespace Qi
@@ -27,13 +50,15 @@ namespace Qi
 #endif
 	constexpr int ocr_thread_max = 8;
 	inline bool run = false;
-	inline bool debug = false;
+	inline int debug = 0;
 	inline const QString dir = QDir::fromNativeSeparators(QString::fromStdWString(Path::RemoveFile(Process::exePath())));
 	inline const QString folder = dir.mid(dir.lastIndexOf('/') + 1);
 	inline const QString macroDir = dir + "/macro/";
 	inline const QString macroType = ".json";
 	inline const QString macroQimType = ".qim";
 	inline const QString emacroType = ".emacro";
+	inline const QString langType = ".qit";
+	inline const QString langDir = dir + "/lang/";
 	inline const QString savedVarFile = "QuickInput.var";
 	inline const QString configFile = "QuickInput.json";
 	inline QString version;

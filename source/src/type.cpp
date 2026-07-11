@@ -30,11 +30,15 @@ namespace Qi
 			json.insert("theme", (int)set.theme);
 			json.insert("ocr_thread", (int)set.ocr_thread);
 			json.insert("ocr_current", (QString)set.ocr_current);
+			json.insert("language", (QString)set.lang);
 			json.insert("saveType", (int)Qi::set.save_type);
 			json.insert("key", (int)(static_cast<int>(set.key1) | (static_cast<int>(set.key2) << 16)));
 			json.insert("key1", (int)set.key1);
 			json.insert("key2", (int)set.key2);
 			json.insert("recKey", (int)set.recKey);
+#ifdef Q_DRIVER
+			json.insert("driver", (bool)Qi::set.driver);
+#endif
 			json.insert("recTrack", (bool)set.recTrack);
 			json.insert("defOn", (bool)set.defOn);
 			json.insert("showTips", (bool)set.showTips);
@@ -66,18 +70,18 @@ namespace Qi
 			pop.insert("py", (int)ui.pop.y);
 			pop.insert("size", (int)ui.pop.size);
 			pop.insert("time", (int)ui.pop.time);
-			pop.insert("qe", SavePopTextInfo(ui.pop.qe));
-			pop.insert("qd", SavePopTextInfo(ui.pop.qd));
-			pop.insert("we", SavePopTextInfo(ui.pop.we));
-			pop.insert("wd", SavePopTextInfo(ui.pop.wd));
-			pop.insert("qce", SavePopTextInfo(ui.pop.qce));
-			pop.insert("qcd", SavePopTextInfo(ui.pop.qcd));
-			pop.insert("swe", SavePopTextInfo(ui.pop.swe));
-			pop.insert("swd", SavePopTextInfo(ui.pop.swd));
-			pop.insert("dwe", SavePopTextInfo(ui.pop.dwe));
-			pop.insert("dwd", SavePopTextInfo(ui.pop.dwd));
-			pop.insert("upe", SavePopTextInfo(ui.pop.upe));
-			pop.insert("upd", SavePopTextInfo(ui.pop.upd));
+			pop.insert("qe", SavePopTextInfo(ui.pop.qe_));
+			pop.insert("qd", SavePopTextInfo(ui.pop.qd_));
+			pop.insert("we", SavePopTextInfo(ui.pop.we_));
+			pop.insert("wd", SavePopTextInfo(ui.pop.wd_));
+			pop.insert("qce", SavePopTextInfo(ui.pop.qce_));
+			pop.insert("qcd", SavePopTextInfo(ui.pop.qcd_));
+			pop.insert("swe", SavePopTextInfo(ui.pop.swe_));
+			pop.insert("swd", SavePopTextInfo(ui.pop.swd_));
+			pop.insert("dwe", SavePopTextInfo(ui.pop.dwe_));
+			pop.insert("dwd", SavePopTextInfo(ui.pop.dwd_));
+			pop.insert("upe", SavePopTextInfo(ui.pop.upe_));
+			pop.insert("upd", SavePopTextInfo(ui.pop.upd_));
 			json.insert("popbox", pop);
 		}
 		if ("group fold")
@@ -135,42 +139,42 @@ namespace Qi
 			fun.wndActive.state = false;
 			};
 		std::function<void()> DefaultPop = [] {
-			ui.pop.qe.t = "@ 启用";
-			ui.pop.qd.t = "@ 禁用";
-			ui.pop.we.t = "@ 窗口启用";
-			ui.pop.wd.t = "@ 窗口禁用";
-			ui.pop.qce.t = "连点 @";
-			ui.pop.qcd.t = "停止 @";
-			ui.pop.swe.t = "执行 @";
-			ui.pop.swd.t = "停止 @";
-			ui.pop.dwe.t = "执行$次 @";
-			ui.pop.dwd.t = "停止 @";
-			ui.pop.upe.t = "执行$次 @";
-			ui.pop.upd.t = "停止 @";
-			ui.pop.qe.s = "SND_ON";
-			ui.pop.qd.s = "SND_OFF";
-			ui.pop.we.s = "SND_ON";
-			ui.pop.wd.s = "SND_OFF";
-			ui.pop.qce.s = "SND_RUN";
-			ui.pop.qcd.s = "SND_STOP";
-			ui.pop.swe.s = "SND_RUN";
-			ui.pop.swd.s = "SND_STOP";
-			ui.pop.dwe.s = "SND_RUN";
-			ui.pop.dwd.s = "SND_STOP";
-			ui.pop.upe.s = "SND_RUN";
-			ui.pop.upd.s = "SND_STOP";
-			ui.pop.qe.c = QColor(0xC0, 0xE0, 0xFF);
-			ui.pop.qd.c = QColor(0xFF, 0x50, 0x50);
-			ui.pop.we.c = QColor(0xAA, 0xBB, 0xFF);
-			ui.pop.wd.c = QColor(0xFF, 0xA0, 0xA0);
-			ui.pop.qce.c = QColor(0x20, 0xFF, 0x40);
-			ui.pop.qcd.c = QColor(0xFF, 0xFF, 0x60);
-			ui.pop.swe.c = QColor(0x20, 0xFF, 0x40);
-			ui.pop.swd.c = QColor(0xFF, 0xFF, 0x60);
-			ui.pop.dwe.c = QColor(0x20, 0xFF, 0x40);
-			ui.pop.dwd.c = QColor(0xFF, 0xFF, 0x60);
-			ui.pop.upe.c = QColor(0x20, 0xFF, 0x40);
-			ui.pop.upd.c = QColor(0xFF, 0xFF, 0x60);
+			ui.pop.qe.t = ui.pop.qe_.t = QiUi::Text::popOn_;
+			ui.pop.qd.t = ui.pop.qd_.t = QiUi::Text::popOff_;
+			ui.pop.we.t = ui.pop.we_.t = QiUi::Text::popWndOn_;
+			ui.pop.wd.t = ui.pop.wd_.t = QiUi::Text::popWndOff_;
+			ui.pop.qce.t = ui.pop.qce_.t = QiUi::Text::popClickOn_;
+			ui.pop.qcd.t = ui.pop.qcd_.t = QiUi::Text::popClickOff_;
+			ui.pop.swe.t = ui.pop.swe_.t = QiUi::Text::popSwOn_;
+			ui.pop.swd.t = ui.pop.swd_.t = QiUi::Text::popSwOff_;
+			ui.pop.dwe.t = ui.pop.dwe_.t = QiUi::Text::popDownOn_;
+			ui.pop.dwd.t = ui.pop.dwd_.t = QiUi::Text::popDownOff_;
+			ui.pop.upe.t = ui.pop.upe_.t = QiUi::Text::popUpOn_;
+			ui.pop.upd.t = ui.pop.upd_.t = QiUi::Text::popUpOff_;
+			ui.pop.qe.s = ui.pop.qe_.s = "SND_ON";
+			ui.pop.qd.s = ui.pop.qd_.s = "SND_OFF";
+			ui.pop.we.s = ui.pop.we_.s = "SND_ON";
+			ui.pop.wd.s = ui.pop.wd_.s = "SND_OFF";
+			ui.pop.qce.s = ui.pop.qce_.s = "SND_RUN";
+			ui.pop.qcd.s = ui.pop.qcd_.s = "SND_STOP";
+			ui.pop.swe.s = ui.pop.swe_.s = "SND_RUN";
+			ui.pop.swd.s = ui.pop.swd_.s = "SND_STOP";
+			ui.pop.dwe.s = ui.pop.dwe_.s = "SND_RUN";
+			ui.pop.dwd.s = ui.pop.dwd_.s = "SND_STOP";
+			ui.pop.upe.s = ui.pop.upe_.s = "SND_RUN";
+			ui.pop.upd.s = ui.pop.upd_.s = "SND_STOP";
+			ui.pop.qe.c = ui.pop.qe_.c = QColor(0xC0, 0xE0, 0xFF);
+			ui.pop.qd.c = ui.pop.qd_.c = QColor(0xFF, 0x50, 0x50);
+			ui.pop.we.c = ui.pop.we_.c = QColor(0xAA, 0xBB, 0xFF);
+			ui.pop.wd.c = ui.pop.wd_.c = QColor(0xFF, 0xA0, 0xA0);
+			ui.pop.qce.c = ui.pop.qce_.c = QColor(0x20, 0xFF, 0x40);
+			ui.pop.qcd.c = ui.pop.qcd_.c = QColor(0xFF, 0xFF, 0x60);
+			ui.pop.swe.c = ui.pop.swe_.c = QColor(0x20, 0xFF, 0x40);
+			ui.pop.swd.c = ui.pop.swd_.c = QColor(0xFF, 0xFF, 0x60);
+			ui.pop.dwe.c = ui.pop.dwe_.c = QColor(0x20, 0xFF, 0x40);
+			ui.pop.dwd.c = ui.pop.dwd_.c = QColor(0xFF, 0xFF, 0x60);
+			ui.pop.upe.c = ui.pop.upe_.c = QColor(0x20, 0xFF, 0x40);
+			ui.pop.upd.c = ui.pop.upd_.c = QColor(0xFF, 0xFF, 0x60);
 			ui.pop.x = 5000;
 			ui.pop.y = 0;
 			ui.pop.size = 20;
@@ -188,6 +192,7 @@ namespace Qi
 				set.theme = json.value("theme").toInt();
 				set.ocr_thread = std::clamp(json.value("ocr_thread").toInt(), 0, 16);
 				set.ocr_current = json.value("ocr_current").toString();
+				set.lang = json.value("language").toString();
 				set.save_type = json.value("saveType").toInt();
 
 				if (json.contains("key1"))
@@ -203,6 +208,9 @@ namespace Qi
 				}
 
 				set.recKey = json.value("recKey").toInt();
+#ifdef Q_DRIVER
+				set.driver = json.value("driver").toBool();
+#endif
 				set.recTrack = json.value("recTrack").toBool();
 				set.defOn = json.value("defOn").toBool();
 				set.showTips = json.value("showTips").toBool();
@@ -234,18 +242,18 @@ namespace Qi
 				}
 				else
 				{
-					ui.pop.qe = LoadPopTextInfo(pop.value("qe").toObject());
-					ui.pop.qd = LoadPopTextInfo(pop.value("qd").toObject());
-					ui.pop.we = LoadPopTextInfo(pop.value("we").toObject());
-					ui.pop.wd = LoadPopTextInfo(pop.value("wd").toObject());
-					ui.pop.qce = LoadPopTextInfo(pop.value("qce").toObject());
-					ui.pop.qcd = LoadPopTextInfo(pop.value("qcd").toObject());
-					ui.pop.swe = LoadPopTextInfo(pop.value("swe").toObject());
-					ui.pop.swd = LoadPopTextInfo(pop.value("swd").toObject());
-					ui.pop.dwe = LoadPopTextInfo(pop.value("dwe").toObject());
-					ui.pop.dwd = LoadPopTextInfo(pop.value("dwd").toObject());
-					ui.pop.upe = LoadPopTextInfo(pop.value("upe").toObject());
-					ui.pop.upd = LoadPopTextInfo(pop.value("upd").toObject());
+					ui.pop.qe = ui.pop.qe_ = LoadPopTextInfo(pop.value("qe").toObject());
+					ui.pop.qd = ui.pop.qd_ = LoadPopTextInfo(pop.value("qd").toObject());
+					ui.pop.we = ui.pop.we_ = LoadPopTextInfo(pop.value("we").toObject());
+					ui.pop.wd = ui.pop.wd_ = LoadPopTextInfo(pop.value("wd").toObject());
+					ui.pop.qce = ui.pop.qce_ = LoadPopTextInfo(pop.value("qce").toObject());
+					ui.pop.qcd = ui.pop.qcd_ = LoadPopTextInfo(pop.value("qcd").toObject());
+					ui.pop.swe = ui.pop.swe_ = LoadPopTextInfo(pop.value("swe").toObject());
+					ui.pop.swd = ui.pop.swd_ = LoadPopTextInfo(pop.value("swd").toObject());
+					ui.pop.dwe = ui.pop.dwe_ = LoadPopTextInfo(pop.value("dwe").toObject());
+					ui.pop.dwd = ui.pop.dwd_ = LoadPopTextInfo(pop.value("dwd").toObject());
+					ui.pop.upe = ui.pop.upe_ = LoadPopTextInfo(pop.value("upe").toObject());
+					ui.pop.upd = ui.pop.upd_ = LoadPopTextInfo(pop.value("upd").toObject());
 					ui.pop.time = pop.value("time").toInt();
 					ui.pop.size = pop.value("size").toInt();
 					ui.pop.x = pop.value("px").toInt();

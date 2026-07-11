@@ -164,6 +164,31 @@
        </spacer>
       </item>
       <item>
+       <widget class="QRadioButton" name="action_entry_radio">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="focusPolicy">
+         <enum>Qt::FocusPolicy::ClickFocus</enum>
+        </property>
+        <property name="toolTip">
+         <string/>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LayoutDirection::RightToLeft</enum>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">margin-right:10px</string>
+        </property>
+        <property name="text">
+         <string>运行前</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QRadioButton" name="action_running_radio">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
@@ -206,7 +231,7 @@
          <enum>Qt::LayoutDirection::RightToLeft</enum>
         </property>
         <property name="text">
-         <string>结束时</string>
+         <string>结束后</string>
         </property>
        </widget>
       </item>
@@ -7666,7 +7691,7 @@
                   <item>
                    <widget class="QRadioButton" name="dialog_style_none_radio">
                     <property name="text">
-                     <string>普通</string>
+                     <string>消息</string>
                     </property>
                    </widget>
                   </item>
@@ -8639,7 +8664,7 @@
                      <enum>Qt::LayoutDirection::RightToLeft</enum>
                     </property>
                     <property name="text">
-                     <string>暂停</string>
+                     <string>暂停.</string>
                     </property>
                    </widget>
                   </item>
@@ -8661,7 +8686,7 @@
                      <enum>Qt::LayoutDirection::RightToLeft</enum>
                     </property>
                     <property name="text">
-                     <string>继续</string>
+                     <string>继续.</string>
                     </property>
                    </widget>
                   </item>
@@ -8683,7 +8708,7 @@
                      <enum>Qt::LayoutDirection::RightToLeft</enum>
                     </property>
                     <property name="text">
-                     <string>停止</string>
+                     <string>停止.</string>
                     </property>
                    </widget>
                   </item>

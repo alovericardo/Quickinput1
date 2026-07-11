@@ -1114,7 +1114,7 @@ public:
 		case typepack::value::Type::Bool: return v.toBool();
 		case typepack::value::Type::Int: return v.toInt();
 		case typepack::value::Type::UInt: return v.toUInt();
-		case typepack::value::Type::Number: return v.toNumber();
+		case typepack::value::Type::Float64: return v.toFloat64();
 		case typepack::value::Type::String: return v.toString();
 		}
 		return {};
@@ -1196,31 +1196,31 @@ public:
 		std::wstring text;
 		if (msg.find(QiScriptInterpreter::error_invalid_character) != std::string::npos)
 		{
-			text = L"语句出现无效的字符";
+			text = lang_trans(L"无效的字符");
 		}
 		else if (msg.find(QiScriptInterpreter::error_invalid_expression) != std::string::npos)
 		{
-			text = L"语句无效";
+			text = lang_trans(L"语法无效");
 		}
 		else if (msg.find(QiScriptInterpreter::error_not_enough_operands) != std::string::npos)
 		{
-			text = L"变量参数缺少或过多";
+			text = lang_trans(L"变量参数缺少或过多");
 		}
 		else if (msg.find("==") != std::string::npos)
 		{
-			text = L"== 操作符使用错误";
+			text = lang_trans(L"操作符使用错误");
 		}
 		else if (msg.find(QiScriptInterpreter::error_unknown_operator) != std::string::npos)
 		{
-			text = L"未知运算符号";
+			text = lang_trans(L"未知操作符");
 		}
 		else if (msg.find(QiScriptInterpreter::error_unknown_functions) != std::string::npos)
 		{
-			text = L"未知函数";
+			text = lang_trans(L"未知函数");
 		}
 		else if (msg.find(QiScriptInterpreter::error_functions_parameter_invalid) != std::string::npos)
 		{
-			text = L"函数参数无效";
+			text = lang_trans(L"函数参数无效");
 		}
 		MessageBoxW(nullptr, (String::toWString(msg) + std::wstring(L"\n\n") + text + std::wstring(L"\n\n") + String::toWString(addition)).c_str(), L"Quickinput script", MB_ICONERROR | MB_TOPMOST);
 	}

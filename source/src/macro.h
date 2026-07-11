@@ -235,6 +235,7 @@ struct Macro
 	QString script;
 	QString name;
 	QString groupName;
+	Actions acEnt;
 	Actions acRun;
 	Actions acEnd;
 	WndInfo wndInfo; // window input data info
@@ -250,7 +251,11 @@ struct Macro
 	void fromJson(const QJsonObject& json);
 	typepack::object toPack() const;
 	void fromPack(const typepack::object& pack);
+#ifdef Q_ENCRYPT
+	QString fileType() const { return Qi::emacroType; }
+#else
 	QString fileType() const { return storageType == StorageType::QIM ? Qi::macroQimType : Qi::macroType; }
+#endif
 	QString makeFile() const
 	{
 		return name + fileType();
@@ -268,13 +273,13 @@ struct Macro
 	{
 		if (!QDir(Qi::macroDir).exists() && !QDir(Qi::macroDir).mkdir(Qi::macroDir))
 		{
-			MsgBox::Error(L"创建宏目录失败");
+			MsgBox::Error(lang_trans("创建宏目录失败").toStdWString());
 			return false;
 		}
 		const QString dir = makeDir();
 		if (!QDir(dir).exists() && !QDir(dir).mkdir(dir))
 		{
-			MsgBox::Error(L"创建分组目录失败");
+			MsgBox::Error(lang_trans("创建分组目录失败").toStdWString());
 			return false;
 		}
 		return true;
@@ -372,7 +377,7 @@ struct MacroGroup
 		QString path = Qi::macroDir;
 		if (!QDir(path).exists() && !QDir(path).mkdir(path))
 		{
-			MsgBox::Error(L"创建宏目录失败");
+			MsgBox::Error(lang_trans("创建宏目录失败").toStdWString());
 			return false;
 		}
 		if (!base)
@@ -380,7 +385,7 @@ struct MacroGroup
 			path += name + QString("/");
 			if (!QDir(path).exists() && !QDir(path).mkdir(path))
 			{
-				MsgBox::Error(L"创建分组目录失败");
+				MsgBox::Error(lang_trans("创建分组目录失败").toStdWString());
 				return false;
 			}
 		}
@@ -433,7 +438,7 @@ struct MacroGroups : public QiVector<MacroGroup>
 	using Base = QiVector<MacroGroup>;
 	using Base::Base;
 	using Base::operator=;
-	QString makeName(const QString& groupName = "组")
+	QString makeName(const QString& groupName = lang_trans("组"))
 	{
 		QString alloc = groupName;
 		bool not_unique = true;

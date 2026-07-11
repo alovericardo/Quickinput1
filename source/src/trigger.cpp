@@ -137,7 +137,7 @@ namespace QiTr
 			memset(Qi::keyState, 0, sizeof(Qi::keyState));
 			if (!InputHook::State())
 			{
-				timeBeginPeriod(1); // set clock accuracy
+				timeBeginPeriod(1);
 #ifndef DEBUG
 				if (!InputHook::Start()) MsgBox::Error(L"创建输入Hook失败，检查是否管理员身份运行 或 是否被安全软件拦截。");
 #endif
@@ -150,8 +150,10 @@ namespace QiTr
 		{
 			if (InputHook::State())
 			{
-				timeEndPeriod(1); // reset clock accuracy
+				timeEndPeriod(1);
+#ifndef DEBUG
 				InputHook::Close();
+#endif
 #ifdef Q_KEYEDIT_PAD_ENABLED
 				if (Qi::set.pad) Qi::xboxpad.closeStateEvent();
 #endif

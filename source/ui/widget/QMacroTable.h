@@ -7,6 +7,7 @@
 #include <qheaderview.h>
 #include <qscrollbar.h>
 #include <qlayout.h>
+#include <src/inc_project.h>
 
 class QMacroTable : public QTableWidget
 {
@@ -31,9 +32,9 @@ public:
 		setStyleSheet("QTableCornerButton::section,QHeaderView::section,QScrollBar,QScrollBar::sub-line,QScrollBar::add-line{background-color:rgba(0,0,0,0);border:none}QScrollBar::handle{background-color:rgba(128,128,128,0.3);border:none}");
 		if ("StyleGroup")
 		{
-			setProperty("group", "group_table");
-			horizontalHeader()->setProperty("group", "group_table_header");
-			verticalHeader()->setProperty("group", "group_table_header");
+			setProperty(Prop::style_group, "group_table");
+			style_set_group(horizontalHeader(), "group_table_header");
+			style_set_group(verticalHeader(), "group_table_header");
 			if ("table corner button")
 			{
 				const QObjectList& objs = children();
@@ -48,14 +49,14 @@ public:
 						box->setContentsMargins(0, 0, 0, 0);
 						QWidget* widget = new QWidget(corner);
 						box->addWidget(widget);
-						corner->setProperty("group", "group_table_header");
-						widget->setProperty("group", "group_table_header");
+						style_set_group(corner, "group_table_header");
+						style_set_group(widget, "group_table_header");
 						break;
 					}
 					else if (name == "QLineEdit")
 					{
 						QLineEdit* lineEdit = (QLineEdit*)obj;
-						lineEdit->setProperty("group", "group_table_header");
+						style_set_group(lineEdit, "group_table_header");
 					}
 				}
 			}
@@ -89,9 +90,9 @@ public:
 			table->viewport()->setStyleSheet("background-color:rgba(0,0,0,0)");
 			if ("StyleGroup")
 			{
-				table->setProperty("group", "macro_table");
-				table->horizontalHeader()->setProperty("group", "macro_table_header");
-				table->verticalHeader()->setProperty("group", "macro_table_header");
+				style_set_group(table, "macro_table");
+				style_set_group(table->horizontalHeader(), "macro_table_header");
+				style_set_group(table->verticalHeader(), "macro_table_header");
 				if ("table corner button")
 				{
 					const QObjectList& objs = table->children();
@@ -114,14 +115,14 @@ public:
 							box->addWidget(label);
 							box->setContentsMargins(0, 0, 0, 0);
 							table->setProperty("table_corner_label", QVariant::fromValue((QLabel*)label));
-							corner->setProperty("group", "macro_table_header");
-							label->setProperty("group", "macro_table_header");
+							style_set_group(corner, "macro_table_header");
+							style_set_group(label, "macro_table_header");
 							break;
 						}
 						else if (name == "QLineEdit")
 						{
 							QLineEdit* lineEdit = (QLineEdit*)obj;
-							lineEdit->setProperty("group", "macro_table_header");
+							style_set_group(lineEdit, "macro_table_header");
 						}
 					}
 				}
