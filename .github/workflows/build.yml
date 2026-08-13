@@ -48,7 +48,7 @@ jobs:
 
       - name: 临时生成项目pro文件（云端本地，不提交仓库）
         run: |
-          "QT += core gui widgets network`nSOURCES += source/main.cpp source/src/action.cpp source/src/func.cpp source/src/init.cpp source/src/input.cpp source/src/interpreter.cpp source/src/json.cpp source/src/lang.cpp source/src/macro.cpp source/src/scriptinterpreter.cpp source/src/thread.cpp source/src/trigger.cpp source/src/type.cpp source/ui/MsgViewUi.cpp source/ui/VarViewUi.cpp source/ui/UpdateUi.cpp source/ui/TriggerUi.cpp source/ui/SettingsUi.cpp source/ui/RecordUi.cpp source/ui/PopsUi.cpp source/ui/HelpUi.cpp source/ui/MainUi.cpp source/ui/MacroUi.cpp source/ui/FuncUi.cpp source/ui/EditUi.cpp source/ui/AboutUi.cpp`nHEADERS += source/src/*.h source/ui/*.h`nINCLUDEPATH += source source/src source/ui" | Set-Content buildtemp.pro -Encoding utf8
+          "DEFINES += WIN32_LEAN_AND_MEAN NOMINMAX`nQT += core gui widgets network`nSOURCES += source/main.cpp source/src/action.cpp source/src/func.cpp source/src/init.cpp source/src/input.cpp source/src/interpreter.cpp source/src/json.cpp source/src/lang.cpp source/src/macro.cpp source/src/scriptinterpreter.cpp source/src/thread.cpp source/src/trigger.cpp source/src/type.cpp source/ui/MsgViewUi.cpp source/ui/VarViewUi.cpp source/ui/UpdateUi.cpp source/ui/TriggerUi.cpp source/ui/SettingsUi.cpp source/ui/RecordUi.cpp source/ui/PopsUi.cpp source/ui/HelpUi.cpp source/ui/MainUi.cpp source/ui/MacroUi.cpp source/ui/FuncUi.cpp source/ui/EditUi.cpp source/ui/AboutUi.cpp`nHEADERS += source/src/*.h source/ui/*.h`nINCLUDEPATH += source source/src source/ui" | Set-Content buildtemp.pro -Encoding utf8
 
       - name: qmake生成构建文件
         run: qmake buildtemp.pro
