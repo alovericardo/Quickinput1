@@ -39,11 +39,9 @@ jobs:
           target: 'desktop'
           arch: 'win64_msvc2022_64'
 
-      # ========== 使用MSBuild编译VS解决方案，删除全部qmake/nmake ==========
       - name: MSBuild编译Release x64
         run: msbuild QuickInput.sln /p:Configuration=Release /p:Platform=x64
 
-      # 编译输出位置 x64\Release
       - name: windeployqt拷贝Qt依赖dll
         run: |
           cd x64/Release
