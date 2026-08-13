@@ -43,15 +43,15 @@ jobs:
         run: |
           echo "$env:QT_INSTALL_DIR\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
 
-      - name: CI下载解压FramelessHelper源码
+      - name: CI下载解压FramelessHelper v2.4.0（和项目源码匹配旧版本）
         run: |
-          Invoke-WebRequest -Uri "https://github.com/wangwenx190/framelesshelper/archive/refs/heads/main.zip" -OutFile qframeless.zip -TimeoutSec 300
+          Invoke-WebRequest -Uri "https://github.com/wangwenx190/framelesshelper/archive/refs/tags/v2.4.0.zip" -OutFile qframeless.zip -TimeoutSec 300
           Expand-Archive qframeless.zip -DestinationPath ./ext
         shell: powershell
 
-      - name: 生成pro构建文件（移除手动指定cpp，改用include子工程）
+      - name: 生成pro构建文件
         run: |
-          "DEFINES += WIN32_LEAN_AND_MEAN NOMINMAX`nQT += core gui widgets network`nLIBS += shell32.lib`nSOURCES += source/main.cpp source/src/action.cpp source/src/func.cpp source/src/init.cpp source/src/input.cpp source/src/interpreter.cpp source/src/json.cpp source/src/lang.cpp source/src/macro.cpp source/src/scriptinterpreter.cpp source/src/thread.cpp source/src/trigger.cpp source/src/type.cpp source/ui/MsgViewUi.cpp source/ui/VarViewUi.cpp source/ui/UpdateUi.cpp source/ui/TriggerUi.cpp source/ui/SettingsUi.cpp source/ui/RecordUi.cpp source/ui/PopsUi.cpp source/ui/HelpUi.cpp source/ui/MainUi.cpp source/ui/MacroUi.cpp source/ui/FuncUi.cpp source/ui/EditUi.cpp source/ui/AboutUi.cpp`nHEADERS += source/src/*.h source/ui/*.h`nINCLUDEPATH += source source/src source/ui`ninclude($$PWD/ext/framelesshelper-main/FramelessHelper.pri)" | Set-Content buildtemp.pro -Encoding utf8
+          "DEFINES += WIN32_LEAN_AND_MEAN NOMINMAX`nQT += core gui widgets network`nLIBS += shell32.lib`nSOURCES += source/main.cpp source/src/action.cpp source/src/func.cpp source/src/init.cpp source/src/input.cpp source/src/interpreter.cpp source/src/json.cpp source/src/lang.cpp source/src/macro.cpp source/src/scriptinterpreter.cpp source/src/thread.cpp source/src/trigger.cpp source/src/type.cpp source/ui/MsgViewUi.cpp source/ui/VarViewUi.cpp source/ui/UpdateUi.cpp source/ui/TriggerUi.cpp source/ui/SettingsUi.cpp source/ui/RecordUi.cpp source/ui/PopsUi.cpp source/ui/HelpUi.cpp source/ui/MainUi.cpp source/ui/MacroUi.cpp source/ui/FuncUi.cpp source/ui/EditUi.cpp source/ui/AboutUi.cpp`nHEADERS += source/src/*.h source/ui/*.h`nINCLUDEPATH += source source/src source/ui`ninclude($$PWD/ext/framelesshelper-2.4.0/FramelessHelper.pri)" | Set-Content buildtemp.pro -Encoding utf8
 
       - name: qmake生成Makefile
         run: qmake buildtemp.pro
