@@ -32,6 +32,7 @@ jobs:
           python -m pip install aqtinstall==3.3.* --default-timeout=120
 
       - name: 安装Qt6
+        id: qt_install
         uses: jurplel/install-qt-action@v4
         with:
           version: '6.8.0'
@@ -39,8 +40,10 @@ jobs:
           target: 'desktop'
           arch: 'win64_msvc2022_64'
 
+      # QT_INSTALL_DIR 由install‑qt‑action输出；Qt MSBuild文件在 %QT_INSTALL_DIR%\msbuild
       - name: MSBuild编译Release x64
-        run: msbuild QuickInput.sln /p:Configuration=Release /p:Platform=x64
+        run: |
+          msbuild QuickInput.sln /p:Configuration=Release /p:Platform=x64 /p:QtMsBuildPath=${{ steps.qt_install.outputs.QT_INSTALL_DIR }}\msbuild
 
       - name: windeployqt拷贝Qt依赖dll
         run: |
