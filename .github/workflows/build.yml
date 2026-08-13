@@ -40,10 +40,12 @@ jobs:
           target: 'desktop'
           arch: 'win64_msvc2022_64'
 
-      # QT_INSTALL_DIR 由install‑qt‑action输出；Qt MSBuild文件在 %QT_INSTALL_DIR%\msbuild
       - name: MSBuild编译Release x64
         run: |
-          msbuild QuickInput.sln /p:Configuration=Release /p:Platform=x64 /p:QtMsBuildPath=${{ steps.qt_install.outputs.QT_INSTALL_DIR }}\msbuild
+          $qtMsBuild = "$env:QT_INSTALL_DIR\msbuild"
+          msbuild QuickInput.sln /p:Configuration=Release /p:Platform=x64 /p:QtMsBuildPath="$qtMsBuild"
+        env:
+          QT_INSTALL_DIR: ${{ steps.qt_install.outputs.QT_INSTALL_DIR }}
 
       - name: windeployqt拷贝Qt依赖dll
         run: |
