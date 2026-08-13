@@ -49,9 +49,9 @@ jobs:
           Expand-Archive qframeless.zip -DestinationPath ./ext
         shell: powershell
 
-      - name: 生成pro构建文件
+      - name: 生成pro构建文件（移除手动指定cpp，改用include子工程）
         run: |
-          "DEFINES += WIN32_LEAN_AND_MEAN NOMINMAX`nQT += core gui widgets network`nLIBS += shell32.lib`nSOURCES += source/main.cpp source/src/action.cpp source/src/func.cpp source/src/init.cpp source/src/input.cpp source/src/interpreter.cpp source/src/json.cpp source/src/lang.cpp source/src/macro.cpp source/src/scriptinterpreter.cpp source/src/thread.cpp source/src/trigger.cpp source/src/type.cpp source/ui/MsgViewUi.cpp source/ui/VarViewUi.cpp source/ui/UpdateUi.cpp source/ui/TriggerUi.cpp source/ui/SettingsUi.cpp source/ui/RecordUi.cpp source/ui/PopsUi.cpp source/ui/HelpUi.cpp source/ui/MainUi.cpp source/ui/MacroUi.cpp source/ui/FuncUi.cpp source/ui/EditUi.cpp source/ui/AboutUi.cpp`nHEADERS += source/src/*.h source/ui/*.h`nINCLUDEPATH += source source/src source/ui ./ext/framelesshelper-main/src`nSOURCES += ./ext/framelesshelper-main/src/core/framelesshelper.cpp`nHEADERS += ./ext/framelesshelper-main/src/core/framelesshelper.h" | Set-Content buildtemp.pro -Encoding utf8
+          "DEFINES += WIN32_LEAN_AND_MEAN NOMINMAX`nQT += core gui widgets network`nLIBS += shell32.lib`nSOURCES += source/main.cpp source/src/action.cpp source/src/func.cpp source/src/init.cpp source/src/input.cpp source/src/interpreter.cpp source/src/json.cpp source/src/lang.cpp source/src/macro.cpp source/src/scriptinterpreter.cpp source/src/thread.cpp source/src/trigger.cpp source/src/type.cpp source/ui/MsgViewUi.cpp source/ui/VarViewUi.cpp source/ui/UpdateUi.cpp source/ui/TriggerUi.cpp source/ui/SettingsUi.cpp source/ui/RecordUi.cpp source/ui/PopsUi.cpp source/ui/HelpUi.cpp source/ui/MainUi.cpp source/ui/MacroUi.cpp source/ui/FuncUi.cpp source/ui/EditUi.cpp source/ui/AboutUi.cpp`nHEADERS += source/src/*.h source/ui/*.h`nINCLUDEPATH += source source/src source/ui`ninclude($$PWD/ext/framelesshelper-main/FramelessHelper.pri)" | Set-Content buildtemp.pro -Encoding utf8
 
       - name: qmake生成Makefile
         run: qmake buildtemp.pro
