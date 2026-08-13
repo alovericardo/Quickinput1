@@ -15,8 +15,11 @@ jobs:
       QT_VERSION: "6.8.0"
       QT_ARCH: "win64_msvc2022_64"
     steps:
-      - name: 拉取源码
+      - name: 拉取源码 + 拉取git子模块(QFrameless)
         uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
 
       - name: 加载MSVC编译环境
         uses: ilammy/msvc-dev-cmd@v1
@@ -48,7 +51,7 @@ jobs:
 
       - name: 临时生成项目pro文件（云端本地，不提交仓库）
         run: |
-          "DEFINES += WIN32_LEAN_AND_MEAN NOMINMAX`nQT += core gui widgets network`nSOURCES += source/main.cpp source/src/action.cpp source/src/func.cpp source/src/init.cpp source/src/input.cpp source/src/interpreter.cpp source/src/json.cpp source/src/lang.cpp source/src/macro.cpp source/src/scriptinterpreter.cpp source/src/thread.cpp source/src/trigger.cpp source/src/type.cpp source/ui/MsgViewUi.cpp source/ui/VarViewUi.cpp source/ui/UpdateUi.cpp source/ui/TriggerUi.cpp source/ui/SettingsUi.cpp source/ui/RecordUi.cpp source/ui/PopsUi.cpp source/ui/HelpUi.cpp source/ui/MainUi.cpp source/ui/MacroUi.cpp source/ui/FuncUi.cpp source/ui/EditUi.cpp source/ui/AboutUi.cpp`nHEADERS += source/src/*.h source/ui/*.h`nINCLUDEPATH += source source/src source/ui" | Set-Content buildtemp.pro -Encoding utf8
+          "DEFINES += WIN32_LEAN_AND_MEAN NOMINMAX`nQT += core gui widgets network`nLIBS += shell32.lib`nSOURCES += source/main.cpp source/src/action.cpp source/src/func.cpp source/src/init.cpp source/src/input.cpp source/src/interpreter.cpp source/src/json.cpp source/src/lang.cpp source/src/macro.cpp source/src/scriptinterpreter.cpp source/src/thread.cpp source/src/trigger.cpp source/src/type.cpp source/ui/MsgViewUi.cpp source/ui/VarViewUi.cpp source/ui/UpdateUi.cpp source/ui/TriggerUi.cpp source/ui/SettingsUi.cpp source/ui/RecordUi.cpp source/ui/PopsUi.cpp source/ui/HelpUi.cpp source/ui/MainUi.cpp source/ui/MacroUi.cpp source/ui/FuncUi.cpp source/ui/EditUi.cpp source/ui/AboutUi.cpp`nHEADERS += source/src/*.h source/ui/*.h`nINCLUDEPATH += source source/src source/ui ./QFrameless/src`nSOURCES += ./QFrameless/src/qframeless.cpp`nHEADERS += ./QFrameless/src/qframeless.h" | Set-Content buildtemp.pro -Encoding utf8
 
       - name: qmake生成构建文件
         run: qmake buildtemp.pro
