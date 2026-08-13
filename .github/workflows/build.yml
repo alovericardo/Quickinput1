@@ -41,11 +41,11 @@ jobs:
           target: 'desktop'
           arch: 'win64_msvc2022_64'
 
-      # 替换CMake，使用msbuild编译VS工程
+      # 明确指定解决方案全名，不再使用通配符
       - name: MSBuild编译Release版本
-        run: msbuild *.sln /p:Configuration=Release /p:Platform=x64
+        run: msbuild QuickInput.sln /p:Configuration=Release /p:Platform=x64
 
-      # 云端自动部署Qt依赖，下载解压直接运行
+      # 云端自动打包Qt全部依赖库
       - name: 补全Qt运行依赖
         run: |
           Get-ChildItem ./x64/Release/*.exe | ForEach-Object { windeployqt $_.FullName }
