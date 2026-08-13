@@ -37,19 +37,21 @@ jobs:
           host: 'windows'
           target: 'desktop'
           arch: 'win64_msvc2022_64'
-      # 完全保留原版成功的编译代码，不拆分run、不改动顺序
+
+      # ✅关键：不要cd source！pro文件在仓库根目录！
       - name: 项目编译
         run: |
-          cd source
           qmake -spec win32-msvc CONFIG+=release
           nmake release
-      # 仅新增部署依赖+上传，不干扰原有编译流程
+
+      # 编译产物输出在 release 文件夹（仓库根目录下release）
       - name: 打包Qt运行依赖
         run: |
-          cd source/release
+          cd release
           windeployqt *.exe
+
       - name: 上传可执行程序
         uses: actions/upload-artifact@v4
         with:
           name: QuickInput-Win-x64
-          path: source/release/**/*
+          path: release/**/*
