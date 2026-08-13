@@ -41,22 +41,14 @@ jobs:
           arch: 'win64_msvc2022_64'
 
       - name: 添加Qt bin到PATH
-        run: |
-          echo "$env:QT_INSTALL_DIR\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
         env:
           QT_INSTALL_DIR: ${{ steps.qt_install.outputs.QT_INSTALL_DIR }}
+        run: |
+          echo "$env:QT_INSTALL_DIR\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
 
       - name: 临时生成项目pro文件（云端本地，不提交仓库）
         run: |
-          $proText = @'
-QT += core gui widgets network
-SOURCES += source/main.cpp \
-source/src/action.cpp source/src/func.cpp source/src/init.cpp source/src/input.cpp source/src/interpreter.cpp source/src/json.cpp source/src/lang.cpp source/src/macro.cpp source/src/scriptinterpreter.cpp source/src/thread.cpp source/src/trigger.cpp source/src/type.cpp \
-source/ui/MsgViewUi.cpp source/ui/VarViewUi.cpp source/ui/UpdateUi.cpp source/ui/TriggerUi.cpp source/ui/SettingsUi.cpp source/ui/RecordUi.cpp source/ui/PopsUi.cpp source/ui/HelpUi.cpp source/ui/MainUi.cpp source/ui/MacroUi.cpp source/ui/FuncUi.cpp source/ui/EditUi.cpp source/ui/AboutUi.cpp
-HEADERS += source/src/*.h source/ui/*.h
-INCLUDEPATH += source source/src source/ui
-'@
-          $proText | Out-File -FilePath buildtemp.pro -Encoding utf8
+          "QT += core gui widgets network`nSOURCES += source/main.cpp source/src/action.cpp source/src/func.cpp source/src/init.cpp source/src/input.cpp source/src/interpreter.cpp source/src/json.cpp source/src/lang.cpp source/src/macro.cpp source/src/scriptinterpreter.cpp source/src/thread.cpp source/src/trigger.cpp source/src/type.cpp source/ui/MsgViewUi.cpp source/ui/VarViewUi.cpp source/ui/UpdateUi.cpp source/ui/TriggerUi.cpp source/ui/SettingsUi.cpp source/ui/RecordUi.cpp source/ui/PopsUi.cpp source/ui/HelpUi.cpp source/ui/MainUi.cpp source/ui/MacroUi.cpp source/ui/FuncUi.cpp source/ui/EditUi.cpp source/ui/AboutUi.cpp`nHEADERS += source/src/*.h source/ui/*.h`nINCLUDEPATH += source source/src source/ui" | Set-Content buildtemp.pro -Encoding utf8
 
       - name: qmake生成构建文件
         run: qmake buildtemp.pro
@@ -65,8 +57,7 @@ INCLUDEPATH += source source/src source/ui
         run: nmake
 
       - name: 部署Qt依赖
-        run: |
-          windeployqt release\*.exe
+        run: windeployqt release\*.exe
 
       - name: 上传产物
         uses: actions/upload-artifact@v4
