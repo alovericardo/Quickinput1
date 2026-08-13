@@ -12,7 +12,7 @@ jobs:
   build_windows:
     runs-on: windows-latest
     env:
-      QT_VERSION: "6.7.2"
+      QT_VERSION: "6.8.0"
       QT_ARCH: "win64_msvc2022_64"
     steps:
       - name: 拉取源码
@@ -26,14 +26,15 @@ jobs:
         with:
           python-version: "3.11"
 
-      # 改动：从PyPI直接安装正式版aqtinstall，不再拉取GitHub源码，避开网络问题
       - name: 安装aqtinstall
-        run: python -m pip install aqtinstall
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install aqtinstall==3.3.* --default-timeout=120
 
       - name: 安装Qt6
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.7.2'
+          version: '6.8.0'
           host: 'windows'
           target: 'desktop'
           arch: 'win64_msvc2022_64'
